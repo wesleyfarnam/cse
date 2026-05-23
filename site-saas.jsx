@@ -383,10 +383,14 @@ a { color: inherit; text-decoration: none; }
 .journey-btn-icon { width: 8px; height: 10px; flex-shrink: 0; }
 
 @media (max-width: 980px) {
-  .journey-tabs { display: flex; overflow-x: auto; }
-  .journey-tab { flex: 0 0 auto; min-width: 220px; }
-  .journey-panel { grid-template-columns: 1fr; gap: 32px; }
+  .journey-tabs { grid-template-columns: 1fr 1fr; margin-bottom: 32px; }
+  .journey-tab { padding: 14px 12px; gap: 10px; }
+  .journey-tab:nth-child(-n+2) { border-bottom: 1px solid ${T.border}; }
+  .journey-name { font-size: 13px; line-height: 1.2; }
+  .journey-num { flex: 0 0 28px; width: 28px; height: 28px; font-size: 12px; }
+  .journey-panel { grid-template-columns: 1fr; gap: 32px; min-height: 0; }
   .journey-h { font-size: 28px; }
+  .journey-controls { flex-wrap: wrap; }
 }
 
 /* PATHWAY — interactive bar-chart selector + detail panel */
@@ -968,13 +972,35 @@ a { color: inherit; text-decoration: none; }
 
 /* RESPONSIVE — collapse grids on small viewports */
 @media (max-width: 980px) {
+  .s-container { padding: 0 20px; }
+  .s-section { padding: 56px 0; }
+  .s-section.tight { padding: 40px 0; }
+  .s-hero { padding: 40px 0 56px; }
   .s-hero-grid, .g-split, .g-split-reverse { grid-template-columns: 1fr; gap: 32px; }
   .g-3, .g-4 { grid-template-columns: 1fr 1fr; }
   .s-founder, .s-founder.reverse { grid-template-columns: 1fr; }
   .s-footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
-  .s-cta-inner { flex-direction: column; align-items: flex-start; }
+  .s-cta { padding: 36px 28px; border-radius: 18px; }
+  .s-cta h2 { font-size: 24px; }
+  .s-cta-inner { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .s-hero-cta-row { flex-wrap: wrap; }
+  .s-hero-cta-row .s-btn { flex: 1 1 auto; justify-content: center; }
   .s-level { flex-direction: column; align-items: flex-start; }
   .s-level-photo { width: 100%; height: 200px; flex: none; }
+  .why-feature { padding: 56px 0; }
+  .why-feature-num-overlay { font-size: 80px; }
+}
+@media (max-width: 640px) {
+  .s-container { padding: 0 18px; }
+  .g-3, .g-4 { grid-template-columns: 1fr; gap: 20px; }
+  .s-footer-grid { grid-template-columns: 1fr; gap: 28px; padding-bottom: 32px; }
+  .program-grid { grid-template-columns: 1fr; }
+  .lineage { gap: 12px; }
+  .s-h1 { font-size: 36px !important; }
+  .s-h2 { font-size: 28px !important; }
+  .s-lede { font-size: 17px; }
+  .s-footer { padding: 48px 0 24px; }
+  .s-footer-base { flex-direction: column; gap: 8px; align-items: flex-start; }
 }
 `;
 
