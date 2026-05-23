@@ -46,7 +46,7 @@ const PHOTOS = {
 // ─── GLOBAL STYLES ─────────────────────────────────────────────────────────
 const saasCss = `
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; background: ${T.paper}; color: ${T.text}; font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+html, body { margin: 0; padding: 0; background: ${T.paper}; color: ${T.text}; font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 
@@ -1001,6 +1001,16 @@ a { color: inherit; text-decoration: none; }
   .s-lede { font-size: 17px; }
   .s-footer { padding: 48px 0 24px; }
   .s-footer-base { flex-direction: column; gap: 8px; align-items: flex-start; }
+
+  /* Athletes "Without / With CSE" toggle — long labels overflow side-by-side */
+  .gap-switch { display: flex; flex-direction: column; width: 100%; max-width: 100%; border-radius: 16px; gap: 2px; margin-bottom: 28px; }
+  .gap-switch button { white-space: normal; text-align: left; padding: 12px 18px; border-radius: 12px; }
+
+  /* Pathway bar labels — let them wrap and shrink instead of overflowing */
+  .pathway-bars { gap: 10px; margin-bottom: 120px; }
+  .pathway-bar-name { white-space: normal; font-size: 11px; line-height: 1.2; max-width: 100%; }
+  .pathway-bar-num { font-size: 10px; letter-spacing: 0.12em; }
+  .pathway-panel { min-height: 0; }
 }
 `;
 
