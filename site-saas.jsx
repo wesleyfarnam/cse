@@ -117,7 +117,44 @@ a { color: inherit; text-decoration: none; }
 }
 @media (max-width: 980px) {
   .s-nav { display: none; }
+  .s-header-cta .s-login { display: none; }
 }
+
+/* MOBILE NAV */
+.s-mobile-toggle { display: none; }
+@media (max-width: 980px) {
+  .s-mobile-toggle {
+    display: inline-flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px;
+    width: 40px; height: 40px;
+    background: transparent; border: 1px solid ${T.border}; border-radius: 8px;
+    cursor: pointer; padding: 0;
+    transition: background .15s;
+  }
+  .s-mobile-toggle:hover { background: ${T.soft}; }
+  .s-mobile-toggle span { display: block; width: 18px; height: 2px; background: ${T.ink}; border-radius: 2px; transition: transform .2s ease, opacity .15s ease; }
+  .s-mobile-toggle.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .s-mobile-toggle.open span:nth-child(2) { opacity: 0; }
+  .s-mobile-toggle.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+}
+.s-mobile-menu {
+  background: ${T.paper};
+  border-top: 1px solid ${T.border};
+  border-bottom: 1px solid ${T.border};
+  padding: 12px 0 16px;
+  animation: mobileMenuIn 0.18s ease-out;
+}
+@keyframes mobileMenuIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.s-mobile-menu a {
+  display: block;
+  padding: 14px 0;
+  font-size: 16px; font-weight: 500;
+  color: ${T.muted};
+  border-bottom: 1px solid ${T.border};
+  cursor: pointer;
+}
+.s-mobile-menu a:last-child { border-bottom: none; }
+.s-mobile-menu a.active { color: ${T.ink}; font-weight: 600; }
+.s-mobile-menu a.active::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${T.red}; margin-right: 8px; vertical-align: 2px; }
 
 /* FOOTER */
 .s-footer { background: ${T.ink}; color: rgba(255,255,255,0.75); padding: 64px 0 32px; }
@@ -1015,25 +1052,48 @@ const NAV = [
   { id: 'about', label: 'About' },
 ];
 
-const Header = ({ page, go }) => (
-  <header className="s-header">
-    <div className="s-container s-header-inner">
-      <div className="s-brand" onClick={() => go('home')}>
-        <img src="assets/cse-logo.png" alt="CSE" />
-        <div className="s-brand-text"><b>CSE</b><span>Combat Sports Education</span></div>
+const Header = ({ page, go }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const handleGo = (id) => { setMenuOpen(false); go(id); };
+  useEffect(() => { setMenuOpen(false); }, [page]);
+  return (
+    <header className="s-header">
+      <div className="s-container s-header-inner">
+        <div className="s-brand" onClick={() => handleGo('home')}>
+          <img src="assets/cse-logo.png" alt="CSE" />
+          <div className="s-brand-text"><b>CSE</b><span>Combat Sports Education</span></div>
+        </div>
+        <nav className="s-nav">
+          {NAV.map(n => (
+            <a key={n.id} className={page === n.id ? 'active' : ''} onClick={() => handleGo(n.id)}>{n.label}</a>
+          ))}
+        </nav>
+        <div className="s-header-cta">
+          <a className="s-login" href="https://combatsportseducation.ezycourse.com/en/all-products/" target="_blank" rel="noopener">Login ↗</a>
+          <Btn onClick={() => handleGo('demo')}>Book a Demo →</Btn>
+          <button
+            className={`s-mobile-toggle ${menuOpen ? 'open' : ''}`}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(o => !o)}
+          >
+            <span /><span /><span />
+          </button>
+        </div>
       </div>
-      <nav className="s-nav">
-        {NAV.map(n => (
-          <a key={n.id} className={page === n.id ? 'active' : ''} onClick={() => go(n.id)}>{n.label}</a>
-        ))}
-      </nav>
-      <div className="s-header-cta">
-        <a className="s-login" href="https://combatsportseducation.ezycourse.com/en/all-products/" target="_blank" rel="noopener">Login ↗</a>
-        <Btn onClick={() => go('demo')}>Book a Demo →</Btn>
-      </div>
-    </div>
-  </header>
-);
+      {menuOpen && (
+        <div className="s-mobile-menu">
+          <div className="s-container">
+            {NAV.map(n => (
+              <a key={n.id} className={page === n.id ? 'active' : ''} onClick={() => handleGo(n.id)}>{n.label}</a>
+            ))}
+            <a href="https://combatsportseducation.ezycourse.com/en/all-products/" target="_blank" rel="noopener" onClick={() => setMenuOpen(false)}>Login ↗</a>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};
 
 const Footer = ({ go }) => (
   <footer className="s-footer">
