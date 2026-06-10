@@ -1,30 +1,53 @@
 #!/bin/bash
+# End-to-end learner smoke test: login -> enroll -> lessons -> quiz -> certificate.
+# Run on the server hosting the site (needs the bench's python for ID discovery).
+#
+#   SITE=demo-federation.localhost BASE=http://127.0.0.1:8000 bash smoke_test.sh
+#
+# Lesson and question IDs differ per install, so they are discovered live via
+# dump_ids.py rather than hardcoded.
 set -e
-BASE="http://127.0.0.1:8000"
-H='Host: demo-federation.localhost'
-JAR=/tmp/coach_cookies.txt
-COURSE="certified-kickboxing-coach-level-1"
-QUIZ="level-1-final-exam"
+SITE="${SITE:-demo-federation.localhost}"
+BASE="${BASE:-http://127.0.0.1:8000}"
+COACH="${COACH:-coach@demofed.test}"
+COACH_PW="${COACH_PW:-CoachDemo_1}"
+PY="${PY:-/home/frappe/frappe-bench/env/bin/python}"
+DIR="$(cd "$(dirname "$0")" && pwd)"
+H="Host: $SITE"
+JAR=$(mktemp)
+
+echo "== 0. Discover course/lesson/question IDs =="
+IDS=$(SITE=$SITE "$PY" "$DIR/run_on_site.py" "$DIR/dump_ids.py" | tail -1)
+COURSE=$(echo "$IDS" | python3 -c "import sys,json; print(json.load(sys.stdin)['course'])")
+QUIZ=$(echo "$IDS" | python3 -c "import sys,json; print(json.load(sys.stdin)['quiz'])")
+RESULTS=$(echo "$IDS" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+print(json.dumps([{'question_name': q['name'], 'answer': q['correct']} for q in d['questions']]))")
+echo "course=$COURSE quiz=$QUIZ"
 
 echo "== 1. Login as coach =="
-curl -s -c $JAR -H "$H" -X POST "$BASE/api/method/login" \
-  -d "usr=coach@demofed.test&pwd=CoachDemo_1" | head -c 200; echo
+curl -s -c "$JAR" -H "$H" -X POST "$BASE/api/method/login" \
+  -d "usr=$COACH&pwd=$COACH_PW" | head -c 200; echo
 
 echo "== 2. Enroll in course =="
-curl -s -b $JAR -H "$H" -H "Content-Type: application/json" -X POST "$BASE/api/method/frappe.client.insert" \
-  -d "{\"doc\":{\"doctype\":\"LMS Enrollment\",\"course\":\"$COURSE\",\"member\":\"coach@demofed.test\"}}" | head -c 200; echo
+curl -s -b "$JAR" -H "$H" -H "Content-Type: application/json" -X POST "$BASE/api/method/frappe.client.insert" \
+  -d "{\"doc\":{\"doctype\":\"LMS Enrollment\",\"course\":\"$COURSE\",\"member\":\"$COACH\"}}" | head -c 200; echo
 
 echo "== 3. Complete lessons =="
-for L in "0004 Ring & Gear Safety" "0005 Injury Prevention Basics" "0007 DKF Competition Rules" "0008 Coaching the Athlete Pathway" "0009 Final Exam"; do
-  curl -s -b $JAR -H "$H" -X POST "$BASE/api/method/lms.lms.doctype.course_lesson.course_lesson.save_progress" \
+echo "$IDS" | python3 -c "
+import sys, json
+for l in json.load(sys.stdin)['lessons']:
+    print(l['name'])" | while IFS= read -r L; do
+  curl -s -b "$JAR" -H "$H" -X POST "$BASE/api/method/lms.lms.doctype.course_lesson.course_lesson.save_progress" \
     --data-urlencode "lesson=$L" --data-urlencode "course=$COURSE" | head -c 80; echo " <- $L"
 done
 
-echo "== 4. Submit quiz =="
-RESULTS='[{"question_name":"QTS-2026-00002","answer":["Mouthguard"]},{"question_name":"QTS-2026-00003","answer":["Roundhouse kick to the body","Straight punch to the head"]}]'
-curl -s -b $JAR -H "$H" -X POST "$BASE/api/method/lms.lms.doctype.lms_quiz.lms_quiz.submit_quiz" \
+echo "== 4. Submit quiz (correct answers from ID dump) =="
+curl -s -b "$JAR" -H "$H" -X POST "$BASE/api/method/lms.lms.doctype.lms_quiz.lms_quiz.submit_quiz" \
   --data-urlencode "quiz=$QUIZ" --data-urlencode "results=$RESULTS"; echo
 
-echo "== 5. Claim certificate =="
-curl -s -b $JAR -H "$H" -X POST "$BASE/api/method/lms.lms.doctype.lms_certificate.lms_certificate.create_certificate" \
+echo "== 5. Claim certificate (must show expiry_date = issue_date + 1 year) =="
+curl -s -b "$JAR" -H "$H" -X POST "$BASE/api/method/lms.lms.doctype.lms_certificate.lms_certificate.create_certificate" \
   --data-urlencode "course=$COURSE"; echo
+rm -f "$JAR"
