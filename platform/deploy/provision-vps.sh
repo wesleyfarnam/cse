@@ -23,6 +23,7 @@ DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}"
 LETSENCRYPT_EMAIL="${LETSENCRYPT_EMAIL:-}"   # empty = skip SSL setup
 FRAPPE_BRANCH="${FRAPPE_BRANCH:-version-15}"
 SCRIPTS_DIR="$(cd "$(dirname "$0")/../scripts" && pwd)"
+APPS_DIR="$(cd "$(dirname "$0")/../apps" && pwd)"
 
 echo "==> [1/8] System packages"
 export DEBIAN_FRONTEND=noninteractive
@@ -71,6 +72,21 @@ if [ ! -d "$FRAPPE_HOME/frappe-bench" ]; then
 fi
 su - frappe -c "cd ~/frappe-bench && [ -d apps/lms ] || CYPRESS_INSTALL_BINARY=0 $BENCH get-app lms"
 su - frappe -c "cd ~/frappe-bench && [ -d apps/payments ] || $BENCH get-app payments --branch ${FRAPPE_BRANCH}"
+# In-repo branding app — custom /login template + CSE Login Branding doctype.
+# `bench get-app` only takes git URLs / GitHub org-repo names, so install in-place:
+# copy into apps/, pip install -e, and register in bench-level apps.txt.
+if [ ! -d "$FRAPPE_HOME/frappe-bench/apps/cse_branding" ]; then
+    cp -r "$APPS_DIR/cse_branding" "$FRAPPE_HOME/frappe-bench/apps/cse_branding"
+    chown -R frappe:frappe "$FRAPPE_HOME/frappe-bench/apps/cse_branding"
+    su - frappe -c "cd ~/frappe-bench && env/bin/pip install --quiet -e apps/cse_branding"
+    if ! grep -qx cse_branding "$FRAPPE_HOME/frappe-bench/sites/apps.txt"; then
+        # Preserve the trailing newline contract: ensure file ends with \n before appending.
+        [ -s "$FRAPPE_HOME/frappe-bench/sites/apps.txt" ] && \
+            [ "$(tail -c1 "$FRAPPE_HOME/frappe-bench/sites/apps.txt")" != "" ] && \
+            echo >> "$FRAPPE_HOME/frappe-bench/sites/apps.txt"
+        echo cse_branding >> "$FRAPPE_HOME/frappe-bench/sites/apps.txt"
+    fi
+fi
 
 echo "==> [5/8] Site ${SITE_DOMAIN} + LMS install"
 if [ ! -d "$FRAPPE_HOME/frappe-bench/sites/${SITE_DOMAIN}" ]; then
@@ -80,6 +96,7 @@ if [ ! -d "$FRAPPE_HOME/frappe-bench/sites/${SITE_DOMAIN}" ]; then
         --mariadb-user-host-login-scope='%'"
 fi
 su - frappe -c "cd ~/frappe-bench && $BENCH --site ${SITE_DOMAIN} list-apps | grep -q '^lms' || $BENCH --site ${SITE_DOMAIN} install-app lms"
+su - frappe -c "cd ~/frappe-bench && $BENCH --site ${SITE_DOMAIN} list-apps | grep -q '^cse_branding' || $BENCH --site ${SITE_DOMAIN} install-app cse_branding"
 su - frappe -c "cd ~/frappe-bench && $BENCH use ${SITE_DOMAIN}"
 # Server Scripts power the 1-year certificate expiry rule (must be global in v15)
 su - frappe -c "cd ~/frappe-bench && $BENCH set-config -g server_script_enabled 1"
@@ -88,6 +105,8 @@ su - frappe -c "cd ~/frappe-bench && $BENCH --site ${SITE_DOMAIN} enable-schedul
 echo "==> [6/8] CSE configuration (branding, roles, course, certificate)"
 mkdir -p $FRAPPE_HOME/cse-scripts
 cp "$SCRIPTS_DIR"/*.py "$SCRIPTS_DIR"/*.sh $FRAPPE_HOME/cse-scripts/
+# Binary asset(s) — kept in scripts/assets/ to avoid bloating the scripts dir
+[ -d "$SCRIPTS_DIR/assets" ] && cp -r "$SCRIPTS_DIR/assets/." $FRAPPE_HOME/cse-scripts/
 # Real brand logo from the repo; gen_logo.py falls back to a placeholder without it
 REPO_LOGO="$(cd "$SCRIPTS_DIR/../.." && pwd)/assets/cse-logo.png"
 [ -f "$REPO_LOGO" ] && cp "$REPO_LOGO" $FRAPPE_HOME/cse-scripts/
@@ -96,6 +115,7 @@ PY=$FRAPPE_HOME/frappe-bench/env/bin/python
 RUN="SITE=${SITE_DOMAIN} $PY $FRAPPE_HOME/cse-scripts/run_on_site.py"
 su - frappe -c "$PY $FRAPPE_HOME/cse-scripts/gen_logo.py"
 su - frappe -c "$RUN $FRAPPE_HOME/cse-scripts/configure_branding_roles.py"
+su - frappe -c "$RUN $FRAPPE_HOME/cse-scripts/configure_login_branding.py"
 su - frappe -c "$RUN $FRAPPE_HOME/cse-scripts/create_course.py"
 su - frappe -c "$RUN $FRAPPE_HOME/cse-scripts/configure_certificate.py"
 su - frappe -c "$RUN $FRAPPE_HOME/cse-scripts/fix_print_format.py"
