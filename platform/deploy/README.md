@@ -49,6 +49,20 @@ Step 5 must return a certificate with `expiry_date` exactly one year after
 - New federation on the same server = the per-federation checklist at the end
   of `runbook/milestone-1-runbook.md` (one bench hosts many isolated sites).
 
+## Troubleshooting
+
+- **Pages load but completely unstyled (no CSS, broken images):** nginx
+  (running as `www-data`) can't traverse `/home/frappe` — Ubuntu ≥21.04
+  creates home directories `0750`, so every `/assets/*` and `/files/*`
+  request fails while proxied pages still work. Fix on a live server with:
+
+  ```bash
+  chmod 755 /home/frappe
+  ```
+
+  Takes effect immediately (no nginx reload needed). The provisioning
+  script now does this automatically.
+
 ## Notes
 
 - The Ubuntu-repo `wkhtmltopdf` (unpatched Qt) renders the certificate fine
