@@ -88,6 +88,9 @@ su - frappe -c "cd ~/frappe-bench && $BENCH --site ${SITE_DOMAIN} enable-schedul
 echo "==> [6/8] CSE configuration (branding, roles, course, certificate)"
 mkdir -p $FRAPPE_HOME/cse-scripts
 cp "$SCRIPTS_DIR"/*.py "$SCRIPTS_DIR"/*.sh $FRAPPE_HOME/cse-scripts/
+# Real brand logo from the repo; gen_logo.py falls back to a placeholder without it
+REPO_LOGO="$(cd "$SCRIPTS_DIR/../.." && pwd)/assets/cse-logo.png"
+[ -f "$REPO_LOGO" ] && cp "$REPO_LOGO" $FRAPPE_HOME/cse-scripts/
 chown -R frappe:frappe $FRAPPE_HOME/cse-scripts
 PY=$FRAPPE_HOME/frappe-bench/env/bin/python
 RUN="SITE=${SITE_DOMAIN} $PY $FRAPPE_HOME/cse-scripts/run_on_site.py"
