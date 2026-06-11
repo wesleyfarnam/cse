@@ -53,6 +53,10 @@ mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USI
 
 echo "==> [3/8] frappe user + bench CLI"
 id frappe >/dev/null 2>&1 || useradd -m -s /bin/bash frappe
+# Ubuntu >=21.04 creates home dirs 0750 (login.defs HOME_MODE). nginx serves
+# /assets and /files as www-data straight from ~/frappe-bench/sites, so it
+# needs traverse access or every page renders unstyled (CSS/JS/images 403).
+chmod 755 /home/frappe
 # bench shells out to `sudo supervisorctl` / `sudo nginx` when reloading;
 # without this, bench init dies at its final "reload" step on fresh servers
 echo 'frappe ALL=(ALL) NOPASSWD: /usr/bin/supervisorctl, /usr/sbin/nginx' > /etc/sudoers.d/frappe
