@@ -15,8 +15,9 @@ favicon = save_file("dkf_favicon.png", open("/home/frappe/cse-scripts/dkf_favico
 
 ws = frappe.get_doc("Website Settings")
 ws.app_name = "Demo Kickboxing Federation"
+# Deliberately no banner_image: Frappe renders it full-size at the top of
+# every portal page (login included); navbar/footer branding is enough.
 ws.app_logo = logo.file_url
-ws.banner_image = logo.file_url
 ws.footer_logo = logo.file_url
 ws.favicon = favicon.file_url
 ws.brand_html = "Demo Kickboxing Federation"
