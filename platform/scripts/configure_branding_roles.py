@@ -2,6 +2,10 @@ import frappe
 from frappe.utils.file_manager import save_file
 
 frappe.set_user("Administrator")
+# Role Profile on_update enqueues a sync via the redis queue; on a fresh box
+# bench redis/workers aren't up yet at provisioning step 6. in_install makes
+# queue_action(now=...) run inline instead.
+frappe.flags.in_install = True
 
 # ---------- 1. Branding (Website Settings) ----------
 logo = save_file("dkf_logo.png", open("/home/frappe/cse-scripts/dkf_logo.png","rb").read(),
@@ -18,12 +22,16 @@ ws.favicon = favicon.file_url
 ws.brand_html = "Demo Kickboxing Federation"
 ws.save(ignore_permissions=True)
 
-# Website Theme for primary brand color (website layer)
+# Website Theme for primary brand color (website layer).
+# Website Theme.primary_color is a Link to Color in Frappe v15, so the Color
+# row has to exist before we can reference it.
+if not frappe.db.exists("Color", "DKF Red"):
+    frappe.get_doc({"doctype": "Color", "__newname": "DKF Red", "color": "#C41E3A"}).insert(ignore_permissions=True)
 if not frappe.db.exists("Website Theme", "Demo Kickboxing Federation"):
     theme = frappe.get_doc({
         "doctype": "Website Theme",
         "theme": "Demo Kickboxing Federation",
-        "primary_color": "#C41E3A",
+        "primary_color": "DKF Red",
         "button_rounded_corners": 1,
     }).insert(ignore_permissions=True)
     frappe.db.set_single_value("Website Settings", "website_theme", theme.name)
