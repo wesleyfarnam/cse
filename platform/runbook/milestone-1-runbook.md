@@ -182,17 +182,57 @@ Resulting certificate: issue date **2026-06-11**, expiry **2027-06-11**
 
 ---
 
+## Domain scheme & custom-domain connection
+
+### The map
+
+| Hostname | Purpose | Points to | When |
+|---|---|---|---|
+| `combatsportseducation.com` + `www` | Marketing site | Vercel | live |
+| `demo.combatsportseducation.com` | Demo/template federation site (sales demo) | platform VPS (A record) | now |
+| `<federation>.combatsportseducation.com` | Each tenant's default URL, created at onboarding | platform VPS (A record, or wildcard later) | per onboarding |
+| `console.combatsportseducation.com` | CSE multi-tenant admin console (frappe/press) | VPS/press server | Milestone 2 |
+| `my.combatsportseducation.com` | Learner launcher portal | Vercel | Phase 2 |
+| `mail.combatsportseducation.com` | Transactional email sending domain (SPF/DKIM isolated from marketing email) | email provider | when email goes live |
+
+**No per-service subdomains for customers.** A federation's one hostname runs
+every module (LMS today; gym ops, HR, community later) because Frappe installs
+multiple apps on the same site with a shared login and user base. Adding a
+module never changes a customer's URL. Generic hostnames like
+`lms.combatsportseducation.com` are deliberately not used — they would break
+the white-label story and cannot serve multiple branded tenants anyway.
+
+**Login scope:** one ecosystem/one login holds *within* each federation's site
+automatically. *Across* federations, sites stay isolated by design; the `my.`
+launcher portal is the cross-membership home. Cross-site SSO (CSE as OAuth
+identity provider) is a possible Phase 2+ project, not assumed here.
+
+### Connecting a federation's custom domain
+
+Offered to every federation, on request:
+
+1. Federation adds in their DNS:
+   `CNAME training.theirdomain.com → <federation>.combatsportseducation.com`
+2. On the platform server:
+   ```bash
+   bench setup add-domain training.theirdomain.com --site <federation-site>
+   bench setup nginx --yes && systemctl reload nginx
+   certbot --nginx -d training.theirdomain.com
+   ```
+3. Verify both URLs serve the site with valid SSL.
+
 ## Per-federation onboarding checklist (the repeatable part)
 
-1. `bench new-site <federation>.cse.example --mariadb-root-password … --admin-password …`
+0. Add DNS A record: `<federation>` → platform VPS IP (skip if wildcard exists).
+1. `bench new-site <federation>.combatsportseducation.com --mariadb-root-password … --admin-password …`
 2. `bench --site <site> install-app lms`
 3. Run `scripts/configure_branding_roles.py` with the federation's name,
    logo, favicon, and primary color.
 4. Run `scripts/configure_certificate.py` (expiry rule + branded template).
 5. Load curriculum (clone of template course or federation-specific content).
 6. Create the Federation Admin user, assign the Federation Admin role profile.
-7. Point the federation's domain at the site (`bench setup add-domain`).
-8. Run `scripts/smoke_test.sh` adapted to the site as the final gate.
+7. Optional: connect the federation's custom domain (see section above).
+8. Run `scripts/smoke_test.sh` against the site as the final gate.
 
-Milestone 2 turns steps 1–8 into one provisioning action in the CSE console
+Milestone 2 turns steps 0–8 into one provisioning action in the CSE console
 (frappe/press).
