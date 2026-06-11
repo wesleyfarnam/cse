@@ -8,9 +8,9 @@ frappe.set_user("Administrator")
 frappe.flags.in_install = True
 
 # ---------- 1. Branding (Website Settings) ----------
-logo = save_file("dkf_logo.png", open("/home/frappe/cse-scripts/dkf_logo.png","rb").read(),
+logo = save_file("brand_logo.png", open("/home/frappe/cse-scripts/brand_logo.png","rb").read(),
                  "Website Settings", "Website Settings", is_private=0)
-favicon = save_file("dkf_favicon.png", open("/home/frappe/cse-scripts/dkf_favicon.png","rb").read(),
+favicon = save_file("brand_favicon.png", open("/home/frappe/cse-scripts/brand_favicon.png","rb").read(),
                     "Website Settings", "Website Settings", is_private=0)
 
 ws = frappe.get_doc("Website Settings")
