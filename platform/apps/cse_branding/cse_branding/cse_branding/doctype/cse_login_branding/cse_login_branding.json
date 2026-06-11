@@ -1,0 +1,187 @@
+{
+ "actions": [],
+ "creation": "2026-06-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "media_section",
+  "background_file",
+  "logo_file",
+  "colors_section",
+  "primary_color",
+  "accent_color",
+  "col_break_colors",
+  "dark_bg_color",
+  "panel_bg_color",
+  "text_color",
+  "hero_section",
+  "wordmark_text",
+  "eyebrow_text",
+  "hero_headline_main",
+  "hero_headline_accent",
+  "hero_subhead",
+  "form_section",
+  "welcome_headline",
+  "welcome_subhead",
+  "footer_section",
+  "footer_left",
+  "footer_right_label",
+  "footer_right_value"
+ ],
+ "fields": [
+  {
+   "fieldname": "media_section",
+   "fieldtype": "Section Break",
+   "label": "Media"
+  },
+  {
+   "description": "Public file URL. Video extensions (mp4/webm/mov) render as a looping muted &lt;video&gt;; image extensions render as a cover-fit &lt;img&gt;.",
+   "fieldname": "background_file",
+   "fieldtype": "Attach",
+   "label": "Background Video or Image"
+  },
+  {
+   "description": "Public file URL for the federation logo, shown above the form on the right panel.",
+   "fieldname": "logo_file",
+   "fieldtype": "Attach",
+   "label": "Logo"
+  },
+  {
+   "fieldname": "colors_section",
+   "fieldtype": "Section Break",
+   "label": "Colors"
+  },
+  {
+   "default": "#d11f2d",
+   "description": "Used for the primary CTA button and accent bars.",
+   "fieldname": "primary_color",
+   "fieldtype": "Color",
+   "label": "Primary Color"
+  },
+  {
+   "default": "#ff5a4d",
+   "description": "Used for the hero headline accent and link hover.",
+   "fieldname": "accent_color",
+   "fieldtype": "Color",
+   "label": "Accent Color"
+  },
+  {
+   "fieldname": "col_break_colors",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "#0a1130",
+   "fieldname": "dark_bg_color",
+   "fieldtype": "Color",
+   "label": "Dark Background"
+  },
+  {
+   "default": "#15214f",
+   "fieldname": "panel_bg_color",
+   "fieldtype": "Color",
+   "label": "Right Panel Background"
+  },
+  {
+   "default": "#f4efe2",
+   "fieldname": "text_color",
+   "fieldtype": "Color",
+   "label": "Text Color"
+  },
+  {
+   "fieldname": "hero_section",
+   "fieldtype": "Section Break",
+   "label": "Left Panel Copy"
+  },
+  {
+   "description": "Small uppercase wordmark in the top-left of the left panel. Defaults to the site app name.",
+   "fieldname": "wordmark_text",
+   "fieldtype": "Data",
+   "label": "Wordmark"
+  },
+  {
+   "default": "Member Portal",
+   "fieldname": "eyebrow_text",
+   "fieldtype": "Data",
+   "label": "Hero Eyebrow"
+  },
+  {
+   "default": "Where champions",
+   "fieldname": "hero_headline_main",
+   "fieldtype": "Data",
+   "label": "Hero Headline (main)"
+  },
+  {
+   "default": "check in.",
+   "description": "Rendered in the accent color, on the line below the main headline.",
+   "fieldname": "hero_headline_accent",
+   "fieldtype": "Data",
+   "label": "Hero Headline (accent)"
+  },
+  {
+   "fieldname": "hero_subhead",
+   "fieldtype": "Small Text",
+   "label": "Hero Subhead"
+  },
+  {
+   "fieldname": "form_section",
+   "fieldtype": "Section Break",
+   "label": "Right Panel Copy"
+  },
+  {
+   "default": "Welcome back",
+   "fieldname": "welcome_headline",
+   "fieldtype": "Data",
+   "label": "Form Headline"
+  },
+  {
+   "fieldname": "welcome_subhead",
+   "fieldtype": "Data",
+   "label": "Form Subhead"
+  },
+  {
+   "fieldname": "footer_section",
+   "fieldtype": "Section Break",
+   "label": "Footer"
+  },
+  {
+   "fieldname": "footer_left",
+   "fieldtype": "Data",
+   "label": "Footer Left"
+  },
+  {
+   "default": "Built on",
+   "fieldname": "footer_right_label",
+   "fieldtype": "Data",
+   "label": "Footer Right Label"
+  },
+  {
+   "default": "Frappe",
+   "fieldname": "footer_right_value",
+   "fieldtype": "Data",
+   "label": "Footer Right Value"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-06-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "CSE Branding",
+ "name": "CSE Login Branding",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

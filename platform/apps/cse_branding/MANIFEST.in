@@ -1,0 +1,17 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include cse_branding *.css
+recursive-include cse_branding *.csv
+recursive-include cse_branding *.html
+recursive-include cse_branding *.ico
+recursive-include cse_branding *.js
+recursive-include cse_branding *.json
+recursive-include cse_branding *.md
+recursive-include cse_branding *.png
+recursive-include cse_branding *.py
+recursive-include cse_branding *.svg
+recursive-include cse_branding *.txt
