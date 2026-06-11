@@ -99,6 +99,11 @@ ln -sf $FRAPPE_HOME/frappe-bench/config/supervisor.conf /etc/supervisor/conf.d/f
 ln -sf $FRAPPE_HOME/frappe-bench/config/nginx.conf /etc/nginx/conf.d/frappe-bench.conf
 # default nginx site would shadow the bench config
 rm -f /etc/nginx/sites-enabled/default
+# bench's nginx template uses `access_log ... main`, but Ubuntu's stock
+# /etc/nginx/nginx.conf doesn't define a `main` log_format, so nginx -t fails.
+if ! grep -q "log_format main" /etc/nginx/nginx.conf; then
+    sed -i 's|^http {|http {\n\tlog_format main '\''$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" "$http_x_forwarded_for"'\'';|' /etc/nginx/nginx.conf
+fi
 systemctl restart supervisor
 nginx -t && systemctl restart nginx
 su - frappe -c "cd ~/frappe-bench && $BENCH setup backups"   # nightly cron; ship offsite separately
