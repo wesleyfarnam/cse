@@ -53,6 +53,10 @@ mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USI
 
 echo "==> [3/8] frappe user + bench CLI"
 id frappe >/dev/null 2>&1 || useradd -m -s /bin/bash frappe
+# bench shells out to `sudo supervisorctl` / `sudo nginx` when reloading;
+# without this, bench init dies at its final "reload" step on fresh servers
+echo 'frappe ALL=(ALL) NOPASSWD: /usr/bin/supervisorctl, /usr/sbin/nginx' > /etc/sudoers.d/frappe
+chmod 440 /etc/sudoers.d/frappe
 su - frappe -c "pip3 install --user --break-system-packages --quiet frappe-bench"
 FRAPPE_HOME=/home/frappe
 BENCH="$FRAPPE_HOME/.local/bin/bench"
