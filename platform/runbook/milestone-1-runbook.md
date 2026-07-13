@@ -236,3 +236,45 @@ Offered to every federation, on request:
 
 Milestone 2 turns steps 0–8 into one provisioning action in the CSE console
 (frappe/press).
+
+## Milestone 2: automated provisioning (`scripts/provision_worker.py`)
+
+The manual checklist above is now scripted end-to-end. An admin queues a
+federation in the **CSE Console** (the `cse_console` app: a `Federation` row
+with status `Provisioning`); a host-side worker picks it up and runs the same
+steps, then writes the result back to the console.
+
+```
+CSE Console (Federation: Provisioning)
+        │  bench execute cse_console.console_api.fetch_provision_job
+        ▼
+provision_worker.py ── new-site → install lms → configure_branding_roles.py
+        │                → configure_certificate.py → create_course.py
+        │                → create_fed_admin.py → smoke_test.sh
+        ▼  bench execute cse_console.console_api.set_federation_status
+CSE Console (Federation: Active | Error + provision_log)
+```
+
+Run it as the `frappe` user:
+
+```bash
+CONSOLE_SITE=console.combatsportseducation.com \
+DB_ROOT_PASSWORD='<db root pw>' \
+ADMIN_PASSWORD='<tenant Administrator pw>' \
+python3 scripts/provision_worker.py            # poll forever (systemd)
+python3 scripts/provision_worker.py --oneshot  # one job then exit (cron)
+python3 scripts/provision_worker.py --dry-run  # print steps, run nothing
+```
+
+Per-federation branding (name, colour, logo) flows from the queued row into
+`configure_branding_roles.py` / `create_fed_admin.py` via env vars; with no
+env set those scripts still reproduce the Milestone 1 demo site exactly. The
+worker's pure logic (job parsing, logo resolution, command building,
+orchestration) is covered by `scripts/test_provision_worker.py`
+(`python3 scripts/test_provision_worker.py`, no bench required).
+
+**Assumptions / not yet done:** single bench (console site and tenant sites on
+the same host); `last_synced` / `user_count` are written by a separate console
+sync job (not this worker); `console_api.py` currently lives on the console
+site — deploying `cse_console` at `console.combatsportseducation.com` is the
+remaining Milestone 2 infra step.
