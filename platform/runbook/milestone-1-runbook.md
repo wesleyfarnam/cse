@@ -236,3 +236,77 @@ Offered to every federation, on request:
 
 Milestone 2 turns steps 0–8 into one provisioning action in the CSE console
 (frappe/press).
+
+## Milestone 2: automated provisioning (`scripts/provision_worker.py`)
+
+The manual checklist above is now scripted end-to-end. An admin queues a
+federation in the **CSE Console** (the `cse_console` app: a `Federation` row
+with status `Provisioning`); a host-side worker picks it up and runs the same
+steps, then writes the result back to the console.
+
+```
+CSE Console (Federation: Provisioning)
+        │  bench execute cse_console.console_api.fetch_provision_job
+        ▼
+provision_worker.py ── new-site → install lms → configure_branding_roles.py
+        │                → configure_certificate.py → create_course.py
+        │                → create_fed_admin.py → smoke_test.sh
+        ▼  bench execute cse_console.console_api.set_federation_status
+CSE Console (Federation: Active | Error + provision_log)
+```
+
+Run it as the `frappe` user:
+
+```bash
+CONSOLE_SITE=console.combatsportseducation.com \
+DB_ROOT_PASSWORD='<db root pw>' \
+ADMIN_PASSWORD='<tenant Administrator pw>' \
+python3 scripts/provision_worker.py            # poll forever (systemd)
+python3 scripts/provision_worker.py --oneshot  # one job then exit (cron)
+python3 scripts/provision_worker.py --dry-run  # print steps, run nothing
+```
+
+Per-federation branding (name, colour, logo) flows from the queued row into
+`configure_branding_roles.py` / `create_fed_admin.py` via env vars; with no
+env set those scripts still reproduce the Milestone 1 demo site exactly. The
+worker's pure logic (job parsing, logo resolution, command building,
+orchestration) is covered by `scripts/test_provision_worker.py`
+(`python3 scripts/test_provision_worker.py`, no bench required).
+
+### Keeping the console fresh (`scripts/sync_worker.py`)
+
+Provisioning sets a federation to `Active` but writes no `last_synced` /
+`user_count`, so the console would show every live federation as "Never synced".
+The sync worker closes that gap: it asks the console for the Active federations,
+polls each tenant for its current member count, and stamps the numbers back.
+
+```
+CSE Console (Active federations)
+        │  bench execute cse_console.console_api.list_active_federations
+        ▼
+sync_worker.py ──(per federation)── run count_users.py on the tenant
+        ▼  bench execute cse_console.console_api.set_federation_sync
+CSE Console (Federation.user_count + last_synced updated)
+```
+
+```bash
+CONSOLE_SITE=console.combatsportseducation.com \
+python3 scripts/sync_worker.py            # one sweep (cron, ~every 10 min)
+python3 scripts/sync_worker.py --loop     # sweep every SYNC_INTERVAL secs
+python3 scripts/sync_worker.py --dry-run  # print the steps, run nothing
+```
+
+A tenant that can't be reached is left untouched (its row goes stale — the
+orange/red badge the console is built to show); it is never flipped to `Error`,
+which stays reserved for provisioning failures. `user_count` counts enabled
+users minus the built-in `Administrator`/`Guest` accounts. Pure logic is covered
+by `scripts/test_sync_worker.py`.
+
+Both workers share `scripts/console_worker.py` (bench-execute plumbing, the
+dry-run `Runner`) so the provisioning and sync paths can't drift apart. The two
+`console_api` helpers they call (`list_active_federations`, `set_federation_sync`)
+live in the `cse_console` app.
+
+**Assumptions / not yet done:** single bench (console site and tenant sites on
+the same host); `console_api.py` lives in the `cse_console` app — deploying it
+at `console.combatsportseducation.com` is the remaining Milestone 2 infra step.
