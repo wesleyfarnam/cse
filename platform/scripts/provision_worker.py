@@ -26,21 +26,26 @@ cron. --oneshot + cron is the simplest deployment; the long-running loop is for
 a dedicated worker box.
 """
 
-import base64
 import os
-import subprocess
 import sys
 import time
 
-# --------------------------------------------------------------------------- #
-# Config (all overridable via env)
-# --------------------------------------------------------------------------- #
-BENCH = os.environ.get("BENCH", "bench")
-BENCH_DIR = os.environ.get("BENCH_DIR", "/home/frappe/frappe-bench")
-CONSOLE_SITE = os.environ.get("CONSOLE_SITE", "console.combatsportseducation.com")
-SCRIPTS_DIR = os.environ.get("SCRIPTS_DIR", os.path.dirname(os.path.abspath(__file__)))
-PY = os.environ.get("PY", os.path.join(BENCH_DIR, "env", "bin", "python"))
+from console_worker import (
+	BENCH,
+	BENCH_DIR,
+	CONSOLE_SITE,
+	SCRIPTS_DIR,
+	Runner,
+	b64d,
+	b64e,
+	build_execute_cmd,
+	cap_log,
+	site_script_cmd,
+)
 
+# --------------------------------------------------------------------------- #
+# Config (provisioning-specific; shared config lives in console_worker.py)
+# --------------------------------------------------------------------------- #
 DB_ROOT_PASSWORD = os.environ.get("DB_ROOT_PASSWORD", "")
 # Tenant Administrator password. A per-site random value is safer in prod; the
 # federation admin logs in as their own FED_ADMIN_EMAIL, not as Administrator.
@@ -48,9 +53,6 @@ ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
 DEFAULT_LOGO = os.environ.get("DEFAULT_LOGO", "")
 
 POLL_INTERVAL = int(os.environ.get("POLL_INTERVAL", "15"))
-# Frappe "Code" fields hold plenty; still cap so a runaway build log can't bloat
-# the row. Keep the tail — that's where failures surface.
-LOG_CAP = int(os.environ.get("LOG_CAP", "60000"))
 
 STATUS_ACTIVE = "Active"
 STATUS_ERROR = "Error"
@@ -59,14 +61,6 @@ STATUS_ERROR = "Error"
 # --------------------------------------------------------------------------- #
 # Pure helpers (no side effects — unit-tested in test_provision_worker.py)
 # --------------------------------------------------------------------------- #
-def b64e(s):
-	return base64.b64encode((s or "").encode()).decode()
-
-
-def b64d(s):
-	return base64.b64decode(s).decode("utf-8", "replace")
-
-
 def parse_job(stdout):
 	"""Extract the JOB|... line printed by fetch_provision_job.
 
@@ -112,50 +106,9 @@ def resolve_logo_path(logo, console_site, bench_dir):
 	return None
 
 
-def build_execute_cmd(site, dotted, kwargs=None):
-	"""argv for `bench --site SITE execute DOTTED [--kwargs JSON]`."""
-	import json
-
-	cmd = [BENCH, "--site", site, "execute", dotted]
-	if kwargs:
-		cmd += ["--kwargs", json.dumps(kwargs)]
-	return cmd
-
-
-def cap_log(text, cap=LOG_CAP):
-	if len(text) <= cap:
-		return text
-	return "…(truncated)…\n" + text[-cap:]
-
-
 # --------------------------------------------------------------------------- #
 # Side-effecting layer
 # --------------------------------------------------------------------------- #
-class Runner:
-	"""Wraps subprocess so --dry-run can short-circuit every external call."""
-
-	def __init__(self, dry_run=False):
-		self.dry_run = dry_run
-
-	def run(self, argv, env=None, cwd=None):
-		"""Run argv; return (returncode, combined_output)."""
-		printable = " ".join(argv)
-		if self.dry_run:
-			return 0, f"[dry-run] {printable}\n"
-		full_env = dict(os.environ)
-		if env:
-			full_env.update(env)
-		proc = subprocess.run(
-			argv,
-			cwd=cwd or BENCH_DIR,
-			env=full_env,
-			stdout=subprocess.PIPE,
-			stderr=subprocess.STDOUT,
-			text=True,
-		)
-		return proc.returncode, proc.stdout
-
-
 def fetch_job(runner):
 	rc, out = runner.run(build_execute_cmd(CONSOLE_SITE, "cse_console.console_api.fetch_provision_job"))
 	if rc != 0:
@@ -179,8 +132,7 @@ def _site_script(runner, site, script, extra_env=None):
 	env = {"SITE": site, "BENCH_SITES": os.path.join(BENCH_DIR, "sites")}
 	if extra_env:
 		env.update(extra_env)
-	argv = [PY, os.path.join(SCRIPTS_DIR, "run_on_site.py"), os.path.join(SCRIPTS_DIR, script)]
-	return runner.run(argv, env=env)
+	return runner.run(site_script_cmd(site, script), env=env)
 
 
 def provision(runner, job):

@@ -273,8 +273,40 @@ worker's pure logic (job parsing, logo resolution, command building,
 orchestration) is covered by `scripts/test_provision_worker.py`
 (`python3 scripts/test_provision_worker.py`, no bench required).
 
+### Keeping the console fresh (`scripts/sync_worker.py`)
+
+Provisioning sets a federation to `Active` but writes no `last_synced` /
+`user_count`, so the console would show every live federation as "Never synced".
+The sync worker closes that gap: it asks the console for the Active federations,
+polls each tenant for its current member count, and stamps the numbers back.
+
+```
+CSE Console (Active federations)
+        │  bench execute cse_console.console_api.list_active_federations
+        ▼
+sync_worker.py ──(per federation)── run count_users.py on the tenant
+        ▼  bench execute cse_console.console_api.set_federation_sync
+CSE Console (Federation.user_count + last_synced updated)
+```
+
+```bash
+CONSOLE_SITE=console.combatsportseducation.com \
+python3 scripts/sync_worker.py            # one sweep (cron, ~every 10 min)
+python3 scripts/sync_worker.py --loop     # sweep every SYNC_INTERVAL secs
+python3 scripts/sync_worker.py --dry-run  # print the steps, run nothing
+```
+
+A tenant that can't be reached is left untouched (its row goes stale — the
+orange/red badge the console is built to show); it is never flipped to `Error`,
+which stays reserved for provisioning failures. `user_count` counts enabled
+users minus the built-in `Administrator`/`Guest` accounts. Pure logic is covered
+by `scripts/test_sync_worker.py`.
+
+Both workers share `scripts/console_worker.py` (bench-execute plumbing, the
+dry-run `Runner`) so the provisioning and sync paths can't drift apart. The two
+`console_api` helpers they call (`list_active_federations`, `set_federation_sync`)
+live in the `cse_console` app.
+
 **Assumptions / not yet done:** single bench (console site and tenant sites on
-the same host); `last_synced` / `user_count` are written by a separate console
-sync job (not this worker); `console_api.py` currently lives on the console
-site — deploying `cse_console` at `console.combatsportseducation.com` is the
-remaining Milestone 2 infra step.
+the same host); `console_api.py` lives in the `cse_console` app — deploying it
+at `console.combatsportseducation.com` is the remaining Milestone 2 infra step.
