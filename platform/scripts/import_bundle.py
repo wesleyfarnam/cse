@@ -1,29 +1,31 @@
-"""Import an ezycourse_export archive into Frappe LMS.
+"""Import a normalized migration bundle into Frappe LMS (source-neutral).
 
-LEGACY / EzyCourse-specific path. This is the original importer and it ran
-successfully in production. It is now one concrete instance of the general
-bundle importer: an EzyCourse export archive is already a valid normalized
-bundle (see BUNDLE_SCHEMA.md). New/source-neutral imports should use
-import_bundle.py, which reads the same bundle layout for any adapter
-(EzyCourse, generic CSV, Teachable, Thinkific, ...). This script is left
-untouched for reproducibility and is superseded by import_bundle.py.
+This is the GENERAL importer. It reads a *normalized bundle* exactly as
+defined in platform/scripts/BUNDLE_SCHEMA.md and loads it into a Frappe LMS
+site. Any source adapter (EzyCourse today; generic CSV, Teachable, Thinkific
+later) produces the same bundle layout, so a single importer consumes them
+all. EzyCourse is simply the first adapter — its export archive is already a
+valid bundle, and ezycourse_import.py is the legacy EzyCourse-specific path
+that this script supersedes.
 
-Run via run_on_site.py on the bench:
-    SITE=<site> EXPORT_DIR=/path/to/ezycourse_export \
-    ~/frappe-bench/env/bin/python run_on_site.py ezycourse_import.py
+Run via run_on_site.py on the bench (same invocation as ezycourse_import.py):
+    SITE=<site> EXPORT_DIR=/path/to/bundle \
+    ~/frappe-bench/env/bin/python run_on_site.py import_bundle.py
 
 Env:
-    EXPORT_DIR       archive produced by ezycourse_export.py (required)
-    VIDEO_MAP        optional JSON file mapping original EzyCourse video
-                     URL (or "<lesson_id>") -> embed URL on the new video
-                     host (Bunny/YouTube). Lessons without a mapping get a
+    EXPORT_DIR       normalized bundle directory (required). BUNDLE_DIR is
+                     accepted as a source-neutral alias; EXPORT_DIR wins if
+                     both are set.
+    VIDEO_MAP        optional JSON file mapping an original source video URL
+                     (or "<lesson_id>") -> embed URL on the new video host
+                     (Bunny/YouTube/etc.). Lessons without a mapping get a
                      visible [VIDEO PENDING] placeholder.
     IMPORT_PROGRESS  set to 1 to also mark lessons complete for students
                      whose enrollment shows a finish date / 100% progress.
 
-Idempotent: safe to re-run; matches existing docs before inserting.
-Frappe LMS does not host video, so video files in the archive must be
-uploaded to a host first (see runbook/ezycourse-migration.md).
+Idempotent: safe to re-run; matches existing docs before inserting. Frappe LMS
+does not host video, so video files in the bundle are never uploaded — they
+are resolved to external embed URLs via VIDEO_MAP (see BUNDLE_SCHEMA.md §6).
 """
 
 import json
@@ -36,7 +38,13 @@ from frappe.utils.file_manager import save_file
 
 frappe.set_user("Administrator")
 
-EXPORT_DIR = Path(os.environ["EXPORT_DIR"])
+# EXPORT_DIR is the historical name (matches ezycourse_import.py); BUNDLE_DIR
+# is a source-neutral alias. EXPORT_DIR takes precedence when both are present.
+BUNDLE_DIR = os.environ.get("EXPORT_DIR") or os.environ.get("BUNDLE_DIR")
+if not BUNDLE_DIR:
+    raise SystemExit("EXPORT_DIR (or BUNDLE_DIR) is required: path to a normalized bundle")
+EXPORT_DIR = Path(BUNDLE_DIR)
+
 VIDEO_MAP = {}
 if os.environ.get("VIDEO_MAP"):
     VIDEO_MAP = json.loads(Path(os.environ["VIDEO_MAP"]).read_text())
@@ -59,13 +67,28 @@ def strip_html(text):
 
 
 def html_paragraphs(html):
-    """EzyCourse lesson bodies are HTML; EditorJS paragraphs accept inline
+    """Bundle lesson bodies are HTML; EditorJS paragraphs accept inline
     markup, so split on block tags and keep the rest as-is."""
     parts = re.split(r"</?(?:p|div|br|h[1-6]|li)[^>]*>", html or "", flags=re.I)
     return [{"type": "paragraph", "data": {"text": p.strip()}} for p in parts if strip_html(p)]
 
 
 IS_VIDEO = re.compile(r"\.(mp4|m3u8|mov|webm)(\?|$)", re.I)
+
+
+def collect_urls(obj, found=None):
+    if found is None:
+        found = []
+    if isinstance(obj, dict):
+        for v in obj.values():
+            collect_urls(v, found)
+    elif isinstance(obj, list):
+        for v in obj:
+            collect_urls(v, found)
+    elif isinstance(obj, str) and obj.startswith("http") and " " not in obj:
+        if re.search(r"\.(mp4|m3u8|mov|webm|pdf|png|jpe?g|gif|mp3|zip|docx?|pptx?|xlsx?)(\?|$)", obj, re.I):
+            found.append(obj)
+    return found
 
 
 def lesson_blocks(lesson):
@@ -91,21 +114,6 @@ def lesson_blocks(lesson):
     if not blocks:
         blocks = [{"type": "paragraph", "data": {"text": first(lesson, "title", "name", default=" ")}}]
     return blocks
-
-
-def collect_urls(obj, found=None):
-    if found is None:
-        found = []
-    if isinstance(obj, dict):
-        for v in obj.values():
-            collect_urls(v, found)
-    elif isinstance(obj, list):
-        for v in obj:
-            collect_urls(v, found)
-    elif isinstance(obj, str) and obj.startswith("http") and " " not in obj:
-        if re.search(r"\.(mp4|m3u8|mov|webm|pdf|png|jpe?g|gif|mp3|zip|docx?|pptx?|xlsx?)(\?|$)", obj, re.I):
-            found.append(obj)
-    return found
 
 
 def ensure_course(detail):
@@ -167,12 +175,14 @@ def attach_assets(lesson_name, lesson, course_dir):
 
 
 # ---------------------------------------------------------------- courses --
-course_title_by_ezy_id = {}
+# Maps a source-specific course id -> the created LMS Course name, so that
+# enrollments referencing a numeric/source id (rather than a title) resolve.
+course_name_by_source_id = {}
 for course_json in sorted(EXPORT_DIR.glob("courses/*/course.json")):
     payload = json.loads(course_json.read_text())
     detail = payload.get("course") or {}
     course_name = ensure_course(detail)
-    course_title_by_ezy_id[str(first(detail, "id", "course_id"))] = course_name
+    course_name_by_source_id[str(first(detail, "id", "course_id"))] = course_name
 
     lessons_by_chapter = {}
     for lesson in payload.get("lessons") or []:
@@ -208,7 +218,7 @@ if normalized_path.exists():
     for e in data.get("enrollments", []):
         email = e["email"].lower()
         course_name = (frappe.db.get_value("LMS Course", {"title": e["course"]})
-                       or course_title_by_ezy_id.get(str(e["course"])))
+                       or course_name_by_source_id.get(str(e["course"])))
         if not course_name or not frappe.db.exists("User", email):
             print("ENROLLMENT_SKIPPED", email, e["course"])
             continue
