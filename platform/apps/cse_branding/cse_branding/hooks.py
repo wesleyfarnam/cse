@@ -1,0 +1,6 @@
+app_name = "cse_branding"
+app_title = "CSE Branding"
+app_publisher = "Combat Sports Education"
+app_description = "Per-federation login page + branding for the CSE platform"
+app_email = "platform@combatsportseducation.com"
+app_license = "MIT"
