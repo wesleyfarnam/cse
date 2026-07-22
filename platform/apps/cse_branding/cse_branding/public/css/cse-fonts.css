@@ -1,0 +1,52 @@
+/* =========================================================================
+   CSE FONTS
+   Typeface wiring for the Combat Sports Education platform.
+
+   HOW FONTS LOAD
+   --------------
+   The actual @font-face payloads are NOT bundled here. Fonts are pulled from
+   Google Fonts via a <link> that is injected PER-FEDERATION (into the login
+   template <head>, via nginx sub_filter for the /lms SPA, and via app_include).
+   This file only:
+     - documents the default font <link>, and
+     - binds the loaded families to the design-system font tokens
+       (--cse-font-app / --cse-font-display, emitted by the :root brand block
+       that brand_css() prepends).
+
+   DEFAULT INJECTED <link> (a federation may override the families/weights):
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link
+       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Saira+Condensed:wght@600;700&display=swap"
+       rel="stylesheet">
+
+   Default families / weights:
+     - Plus Jakarta Sans   400-800   -> app / body        (--cse-font-app)
+     - Saira Condensed     600, 700  -> display / headline (--cse-font-display)
+
+   A federation that overrides --cse-font-app / --cse-font-display in the brand
+   layer is responsible for injecting the matching Google Fonts <link>.
+   ========================================================================= */
+
+
+/* Fallback stacks - keep typography sane if the web font (or the brand :root
+   block that defines the tokens) is ever missing. */
+:root {
+  --cse-font-app-stack: var(--cse-font-app, 'Plus Jakarta Sans'),
+    system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --cse-font-display-stack: var(--cse-font-display, 'Saira Condensed'),
+    'Arial Narrow', var(--cse-font-app, 'Plus Jakarta Sans'), system-ui, sans-serif;
+}
+
+/* Body text uses the app typeface token. */
+body {
+  font-family: var(--cse-font-app-stack);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display / headline helper - opt in with class="cse-display" on any element. */
+.cse-display {
+  font-family: var(--cse-font-display-stack);
+  letter-spacing: 0.01em;
+}

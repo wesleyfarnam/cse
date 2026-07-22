@@ -26,7 +26,15 @@
   "footer_section",
   "footer_left",
   "footer_right_label",
-  "footer_right_value"
+  "footer_right_value",
+  "sitewide_theme_section",
+  "navy_color",
+  "primary_hover_color",
+  "primary_dark_color",
+  "link_color",
+  "font_app",
+  "font_display",
+  "google_fonts_url"
  ],
  "fields": [
   {
@@ -159,6 +167,61 @@
    "fieldname": "footer_right_value",
    "fieldtype": "Data",
    "label": "Footer Right Value"
+  },
+  {
+   "description": "Site-wide brand tokens served by the whitelisted brand_css endpoint. Overrides the :root defaults across every federation surface.",
+   "fieldname": "sitewide_theme_section",
+   "fieldtype": "Section Break",
+   "label": "Site-wide Theme"
+  },
+  {
+   "default": "#131C3F",
+   "description": "Deep navy used for headers, sidebars, and dark structural surfaces (--cse-navy).",
+   "fieldname": "navy_color",
+   "fieldtype": "Color",
+   "label": "Navy Color"
+  },
+  {
+   "default": "#C01F2F",
+   "description": "Hover/active state for primary buttons and controls (--cse-primary-hover).",
+   "fieldname": "primary_hover_color",
+   "fieldtype": "Color",
+   "label": "Primary Hover Color"
+  },
+  {
+   "default": "#F04752",
+   "description": "Brighter primary tint for dark-mode accents (--cse-primary-dark).",
+   "fieldname": "primary_dark_color",
+   "fieldtype": "Color",
+   "label": "Primary Dark Color"
+  },
+  {
+   "default": "#2F54D0",
+   "description": "Link and interactive-text color (--cse-link).",
+   "fieldname": "link_color",
+   "fieldtype": "Color",
+   "label": "Link Color"
+  },
+  {
+   "default": "Plus Jakarta Sans",
+   "description": "Primary application/UI font family (--cse-font-app).",
+   "fieldname": "font_app",
+   "fieldtype": "Data",
+   "label": "App Font"
+  },
+  {
+   "default": "Saira Condensed",
+   "description": "Display/headline font family (--cse-font-display).",
+   "fieldname": "font_display",
+   "fieldtype": "Data",
+   "label": "Display Font"
+  },
+  {
+   "default": "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Saira+Condensed:wght@600;700&display=swap",
+   "description": "Google Fonts stylesheet URL loaded to provide the app and display font families.",
+   "fieldname": "google_fonts_url",
+   "fieldtype": "Small Text",
+   "label": "Google Fonts URL"
   }
  ],
  "issingle": 1,
