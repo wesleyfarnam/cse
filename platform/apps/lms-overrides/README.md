@@ -1,17 +1,41 @@
-# CSE LMS frontend overrides (Path C)
+# CSE LMS frontend overrides
 
-frappe/lms is a **sealed upstream** app (do not edit its repo). These files are
-our CSE design-system implementation on top of it. After any `lms` update,
-re-apply them with `./apply.sh` (copies into apps/lms/frontend/src + rebuilds).
+frappe/lms is a **sealed upstream** app. We do not fork it. Our CSE design
+implementation lives here and is applied on top with `./apply.sh`, which keeps
+the footprint on upstream as small as possible so LMS upgrades stay cheap.
 
-Files (Batch 1/2/3/6 of the claude.ai/design CSE system):
-- components/CourseCard.vue   — Batch 3/6 course card (pill, progress, Resume)
-- pages/Dashboard.vue (+ /dashboard route, nav item) — Batch 1 student dashboard
-- pages/Progress.vue (+ /progress route, nav item)   — Batch 3 progress
-- pages/ProfileCertificates.vue — Batch 3 certificate cards + empty state
-- pages/Courses/Courses.vue   — Batch 3 My Courses page header
-- router.js / utils/index.js  — routes + sidebar nav (Dashboard, Progress)
+## Two kinds of override
 
-Backend for Dashboard/Progress lives in cse_branding/progress.py (whitelisted),
-so no lms Python is touched. `lms-frontend.patch` = git diff of the tracked
-files at capture time (reference; apply.sh uses full-file copies instead).
+1. **Net-new + restyled components (file copies).** Dropped into
+   `apps/lms/frontend/src` by `apply.sh`:
+   - `pages/Dashboard.vue` — Batch 1 student dashboard (net-new)
+   - `pages/Progress.vue` — Batch 3 progress (net-new)
+   - `pages/ProfileCertificates.vue` — Batch 3 certificate cards + empty state (restyle)
+   - `pages/Courses/Courses.vue` — Batch 3 My Courses (restyle)
+   - `components/CourseCard.vue` — Batch 3/6 course card (restyle)
+
+2. **Minimal injection into upstream core files.** `patch_lms_frontend.py`
+   injects ONLY the CSE deltas into the *fresh* upstream files — it does **not**
+   copy them wholesale:
+   - `router.js` ← the `/dashboard` and `/progress` routes
+   - `utils/index.js` ← the Dashboard and Progress sidebar nav items
+
+   The injector is idempotent and **anchor-checked**: if a future LMS version
+   moves an anchor, it fails loudly (no silent corruption) so you re-check the
+   anchor for that version.
+
+Backend for Dashboard/Progress lives in `cse_branding/progress.py` (whitelisted),
+so **no lms Python is touched**.
+
+## Why this shape
+
+Earlier this app shipped full-file copies of `router.js` (285 lines) and
+`utils/index.js` (~1,080 lines) — a huge fork surface where every LMS upgrade
+silently lost upstream fixes. Now the only thing we own in those files is 2
+routes + 2 nav items, injected. The fork surface is the 5 component files above
+plus ~4 lines-of-intent.
+
+## Applying / upgrading
+
+Run `./apply.sh` after any `frappe/lms` update. Full procedure (pin, apply,
+smoke-test) is in `platform/runbook/lms-upgrade-procedure.md`.
