@@ -111,6 +111,10 @@ def brand_css():
             render_brand_css(),
             _read_css("public", "css", "cse-fonts.css"),
             _read_css("public", "css", "cse-design-system.css"),
+            # LMS app skin: overrides that push the stock /lms Vue app toward the
+            # mockups. Appended last so it wins the cascade. First pass — tuned
+            # live against the rendered app (see the file's tuning checklist).
+            _read_css("public", "css", "cse-lms-skin.css"),
         ]
     )
 

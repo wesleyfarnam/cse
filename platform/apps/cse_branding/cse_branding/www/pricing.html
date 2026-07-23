@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="/api/method/cse_branding.brand.brand_css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  {% if google_fonts_url %}<link rel="stylesheet" href="{{ google_fonts_url }}">{% endif %}
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#F6F7F9;color:#111A33;font-family:var(--cse-font-app),-apple-system,sans-serif;line-height:1.6}
+    .wrap{max-width:1100px;margin:0 auto;padding:0 24px}
+    a{color:inherit;text-decoration:none}
+    .display{font-family:var(--cse-font-display),sans-serif;text-transform:uppercase;letter-spacing:.02em}
+    .nav{background:var(--cse-navy);color:#fff}
+    .nav .wrap{display:flex;align-items:center;height:64px;gap:24px}
+    .brand{display:flex;align-items:center;gap:10px;font-family:var(--cse-font-display);font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:.04em}
+    .brand .bar{width:4px;height:22px;border-radius:2px;background:var(--cse-primary-dark)}
+    .nav .links{margin-left:auto;display:flex;gap:22px;font-weight:600;font-size:14px;color:#C7CEE4}
+    .btn{display:inline-block;font-weight:700;font-size:14px;padding:12px 22px;border-radius:10px;border:1px solid transparent;cursor:pointer}
+    .btn-primary{background:var(--cse-primary);color:#fff}
+    .btn-primary:hover{background:var(--cse-primary-hover)}
+    .btn-out{background:transparent;border-color:#D7DCE6;color:#111A33}
+    header.h{text-align:center;padding:64px 24px 20px}
+    header.h .kicker{font-family:var(--cse-font-display);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--cse-primary);font-weight:700}
+    header.h h1{font-family:var(--cse-font-display);font-size:clamp(2rem,4vw,3rem);font-weight:700;text-transform:uppercase;margin:.4rem 0 .3rem}
+    header.h p{color:#5A6378;margin:0}
+    .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:24px 24px 40px;max-width:1100px;margin:0 auto}
+    .plan{background:#fff;border:1px solid #E6E9F0;border-radius:20px;padding:30px;box-shadow:0 1px 2px rgba(16,26,51,.04);display:flex;flex-direction:column}
+    .plan.feat{border:2px solid var(--cse-primary);box-shadow:0 16px 40px rgba(16,26,51,.12);position:relative}
+    .plan.feat .tag{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--cse-primary);color:#fff;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px}
+    .plan h3{font-family:var(--cse-font-display);text-transform:uppercase;letter-spacing:.04em;font-size:1.2rem;margin:0 0 4px}
+    .plan .price{font-family:var(--cse-font-display);font-size:2.6rem;font-weight:700;margin:8px 0}
+    .plan .price small{font-family:var(--cse-font-app);font-size:.95rem;color:#97A0B5;font-weight:500}
+    .plan ul{list-style:none;padding:0;margin:16px 0 24px}
+    .plan li{padding:7px 0 7px 26px;position:relative;color:#3A4565;font-size:.95rem}
+    .plan li::before{content:"";position:absolute;left:0;top:12px;width:14px;height:14px;border-radius:50%;background:#E7F6EE;box-shadow:inset 0 0 0 2px #177A4C}
+    .plan .btn{margin-top:auto;text-align:center}
+    .faq{max-width:760px;margin:0 auto;padding:16px 24px 72px}
+    .faq h2{font-family:var(--cse-font-display);text-transform:uppercase;font-size:1.4rem;margin:0 0 12px}
+    .qa{background:#fff;border:1px solid #E6E9F0;border-radius:12px;padding:16px 18px;margin-bottom:10px}
+    .qa b{display:block;margin-bottom:4px}
+    .guarantee{text-align:center;color:#5A6378;padding:0 24px 64px}
+    .guarantee .g{display:inline-block;background:#E7F6EE;color:#177A4C;font-weight:700;border-radius:999px;padding:8px 16px;font-size:.9rem}
+    @media (max-width:820px){.plans{grid-template-columns:1fr}.nav .links{display:none}}
+  </style>
+</head>
+<body>
+  <div class="nav"><div class="wrap">
+    <a class="brand" href="/home"><span class="bar"></span> CSE</a>
+    <div class="links"><a href="/home">Courses</a><a href="/instructors">Instructors</a><a href="/pricing">Pricing</a><a href="/lms">Log in</a></div>
+  </div></div>
+
+  <header class="h">
+    <div class="kicker">Pricing</div>
+    <h1>Simple plans, serious training</h1>
+    <p>Buy a single course, or get everything with a membership.</p>
+  </header>
+
+  <div class="plans">
+    <div class="plan">
+      <h3>Single course</h3>
+      <div class="price">$79 <small>/ course</small></div>
+      <ul><li>One full certification course</li><li>Lifetime access to that course</li><li>Certificate on completion</li></ul>
+      <a class="btn btn-out" href="/lms">Browse courses</a>
+    </div>
+    <div class="plan feat">
+      <span class="tag">Recommended</span>
+      <h3>All-Access · Annual</h3>
+      <div class="price">$199 <small>/ year</small></div>
+      <ul><li>Every course, every discipline</li><li>All certification tracks</li><li>New courses as they drop</li><li>Best value — 2 months free</li></ul>
+      <a class="btn btn-primary" href="/lms">Start training</a>
+    </div>
+    <div class="plan">
+      <h3>All-Access · Monthly</h3>
+      <div class="price">$19 <small>/ month</small></div>
+      <ul><li>Every course, every discipline</li><li>All certification tracks</li><li>Cancel anytime</li></ul>
+      <a class="btn btn-out" href="/lms">Go monthly</a>
+    </div>
+  </div>
+
+  <div class="guarantee"><span class="g">7-day money-back guarantee</span></div>
+
+  <div class="faq">
+    <h2 class="display">Questions</h2>
+    <div class="qa"><b>Do certificates expire?</b>Certificates are valid for one year from the date you earn them, then renewable.</div>
+    <div class="qa"><b>Can I switch plans?</b>Yes — upgrade, downgrade, or cancel anytime from your account.</div>
+    <div class="qa"><b>Is a single course access forever?</b>Yes, a single-course purchase is lifetime access to that course.</div>
+  </div>
+</body>
+</html>
