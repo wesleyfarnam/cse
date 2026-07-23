@@ -1,135 +1,99 @@
 /* =========================================================================
-   CSE LMS SKIN  —  first pass, TUNE AGAINST THE LIVE /lms DOM
+   CSE LMS SKIN  —  tuned live against the /lms Frappe-UI DOM
    -------------------------------------------------------------------------
-   Purpose: push the stock Frappe LMS Vue app (/lms) toward the CSE mockups by
-   overriding its styling with the per-federation brand tokens. It is delivered
-   through the same pipeline as the design system: brand_css() appends this file,
-   and the nginx sub_filter injects the brand_css <link> into the /lms SPA.
+   Pushes the stock Frappe LMS Vue app (/lms) toward the CSE mockups by
+   overriding its styling with the per-federation brand tokens. Delivered
+   through the same pipeline as the design system: brand_css() appends this
+   file, and the nginx sub_filter injects the brand_css <link> into the /lms
+   SPA shell (see platform/deploy/nginx-cse-branding.snippet).
 
-   WHY "FIRST PASS": the LMS frontend is a compiled Frappe-UI (Vue 3 + Tailwind)
-   bundle. Its exact class names / CSS variables are only visible in the RENDERED
-   page. The selectors below target Frappe-UI's documented token conventions
-   (--ink-*, --surface-*, --outline-*) and the common LMS layout classes, but
-   every rule marked  /* VERIFY LIVE */  should be checked in the browser
-   (DevTools -> inspect the element -> confirm the class/variable) and adjusted.
+   HOW THIS WAS TUNED
+   ------------------
+   The LMS frontend is a compiled Frappe-UI (Vue 3 + Tailwind) bundle. It has
+   NO semantic component classes — the DOM is Tailwind utilities plus a set of
+   CSS custom properties (--ink-gray-*, --surface-*, --outline-*). So the skin
+   works two ways, both verified in the live DOM:
+     1. Structural hooks that ARE stable: the app mount (#app) and the sidebar
+        column class `bg-surface-menu-bar`.
+     2. Frappe-UI's colour VARIABLES, re-pointed within a scope. Because custom
+        properties cascade, redefining --ink-gray-* inside the navy sidebar
+        re-colours every nav label/icon that reads `text-ink-gray-*`.
 
-   Everything here maps to the --cse-* brand tokens (never hardcoded hex), so a
-   federation's colour/font change still flows through automatically.
-
-   SCOPING: these rules must NOT restyle the /login page (which has its own
-   self-contained styling). They are scoped under the LMS app roots below.
+   Everything maps to the --cse-* brand tokens (never hardcoded brand hex), so a
+   federation's colour/font change still flows through automatically. The only
+   literal values here are neutral light/dark shades used to keep text legible
+   on the navy shell (and to restore Frappe-UI's own defaults inside nested
+   light cards — see the reset block).
    ========================================================================= */
 
-/* LMS app roots. The Frappe-UI SPA mounts inside one of these; scoping the
-   skin here keeps it off the login page and plain portal pages.  VERIFY LIVE:
-   confirm the actual mount id/class at /lms (view-source / inspect <body>). */
-#app,
-.lms-app,
-[data-page-route^="lms"],
-body:has(#app) {
-
-  /* ---- 1. Fonts (reliable, high-confidence) ---------------------------- */
+/* ---- 1. Fonts ----------------------------------------------------------- */
+/* Body text -> Plus Jakarta Sans; page headings -> the condensed display face. */
+#app {
   font-family: var(--cse-font-app), -apple-system, BlinkMacSystemFont, sans-serif;
 }
-
-/* Headings / display type -> the condensed display face. VERIFY LIVE which
-   headings should be condensed vs body. */
-.lms-app h1, .lms-app h2, .lms-app h3,
 #app h1, #app h2, #app h3 {
   font-family: var(--cse-font-display), var(--cse-font-app), sans-serif;
   letter-spacing: 0.01em;
 }
 
-/* ---- 2. Remap Frappe-UI accent to the brand primary ---------------------
-   Frappe-UI's default accent is blue; the mockups use the brand red. These
-   remap the semantic blue ramp used for primary actions/links to --cse-primary.
-   VERIFY LIVE: confirm these variable names exist on the rendered page; if the
-   app instead uses utility classes (e.g. bg-gray-900 solid buttons), the
-   button rules in section 4 are the fallback that actually recolours them. */
-#app, .lms-app {
-  --surface-blue-500: var(--cse-primary);        /* VERIFY LIVE */
-  --surface-blue-600: var(--cse-primary-hover);  /* VERIFY LIVE */
-  --ink-blue-500: var(--cse-primary);            /* VERIFY LIVE */
-  --text-ink-blue-2: var(--cse-primary);         /* VERIFY LIVE */
+/* ---- 2. Left sidebar -> brand navy -------------------------------------- */
+/* The LMS sidebar column carries the utility class `bg-surface-menu-bar`
+   (verified: two nested elements, ~224px wide, full height). Paint it navy and
+   re-point the ink ramp to light values so every `text-ink-gray-*` nav label
+   and icon reads on the dark shell. surface-gray-* are the hover/selected
+   backgrounds inside the sidebar. */
+#app .bg-surface-menu-bar {
+  background-color: var(--cse-navy) !important;
+  --ink-gray-9: #FFFFFF;
+  --ink-gray-8: #E7EAF4;
+  --ink-gray-7: #C7CEE4;
+  --ink-gray-6: #AEB7D6;
+  --ink-gray-5: #93A0C8;
+  --ink-gray-4: #93A0C8;
+  --ink-gray-3: #93A0C8;
+  --surface-gray-2: rgba(255, 255, 255, 0.08);
+  --surface-gray-3: rgba(255, 255, 255, 0.14);
+  --surface-selected: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+#app .bg-surface-menu-bar button:hover {
+  background-color: rgba(255, 255, 255, 0.10) !important;
 }
 
-/* ---- 3. Left sidebar -> brand navy (mockup app shell) -------------------
-   The mockups use a fixed 240px navy sidebar. VERIFY LIVE: the LMS sidebar
-   container class (candidates below) and swap if needed. */
-.lms-sidebar,
-.app-sidebar,
-[class*="sidebar"] > nav,
-aside[class*="sidebar"] {
-  background: var(--cse-navy) !important;         /* VERIFY LIVE selector */
-  color: #A9B2D0;
+/* ---- 2a. Reset ink inside nested LIGHT surfaces of the sidebar ----------- */
+/* Frappe-UI teleports the "Getting started" popover into the sidebar subtree
+   (a `position:fixed` node) and docks a `bg-surface-modal` card at the sidebar
+   foot. Both keep their own light background, so the light ink ramp above would
+   make their text invisible. Restore Frappe-UI's default ink/surface values on
+   those light surfaces. (Literal defaults captured from the live :root.) */
+#app .bg-surface-menu-bar .fixed,
+#app .bg-surface-menu-bar [class*="bg-surface-modal"] {
+  --ink-gray-9: #171717;
+  --ink-gray-8: #383838;
+  --ink-gray-7: #525252;
+  --ink-gray-6: #525252;
+  --ink-gray-5: #7C7C7C;
+  --ink-gray-4: #999999;
+  --ink-gray-3: #C7C7C7;
+  --surface-gray-2: #F3F3F3;
+  --surface-gray-3: #EDEDED;
+  --surface-selected: #FFFFFF;
 }
-/* Active nav item -> solid primary pill (mockup Batch 1 sidebar spec). */
-.lms-sidebar a[aria-current="page"],
-.app-sidebar a.active,
-[class*="sidebar"] a[aria-current="page"] {
-  background: var(--cse-primary) !important;      /* VERIFY LIVE selector */
-  color: #fff !important;
-  border-radius: 10px;
-  box-shadow: 0 6px 14px color-mix(in oklab, var(--cse-primary) 35%, transparent);
+#app .bg-surface-menu-bar .fixed button:hover,
+#app .bg-surface-menu-bar [class*="bg-surface-modal"] button:hover {
+  background-color: #F3F3F3 !important;
 }
 
-/* ---- 4. Primary buttons -> brand primary (fallback recolour) ------------
-   Covers Frappe-UI's solid Button and common LMS button classes. VERIFY LIVE:
-   inspect a primary/CTA button and confirm the class; add it here if missing. */
-.button-solid,
-button.solid,
-.btn-primary,
-[class*="button"][class*="solid"],
-a.button-primary {
-  background: var(--cse-primary) !important;
+/* ---- 3. Primary / solid buttons -> brand red ---------------------------- */
+/* Frappe-UI's solid Button variant paints `bg-surface-gray-7` (near-black).
+   The mockups use the brand red for primary actions (e.g. the "Create" button).
+   Scope to <button> so only actual solid buttons are recoloured, not other
+   gray-7 surfaces. */
+#app button[class*="bg-surface-gray-7"] {
+  background-color: var(--cse-primary) !important;
   border-color: var(--cse-primary) !important;
-  color: #fff !important;
 }
-.button-solid:hover,
-button.solid:hover,
-.btn-primary:hover,
-a.button-primary:hover {
-  background: var(--cse-primary-hover) !important;
+#app button[class*="bg-surface-gray-7"]:hover {
+  background-color: var(--cse-primary-hover) !important;
   border-color: var(--cse-primary-hover) !important;
 }
-
-/* ---- 5. Links / focus -> brand link colour ------------------------------ */
-.lms-app a:not(.button):not([class*="button"]),
-#app a:not(.button):not([class*="button"]) {
-  color: var(--cse-link);
-}
-
-/* ---- 6. Progress bars/rings -> brand primary fill ----------------------- */
-.lms-app [class*="progress"] [class*="fill"],
-.lms-app progress::-webkit-progress-value,
-#app [class*="progress"] [style*="width"] {
-  background-color: var(--cse-primary) !important; /* VERIFY LIVE selector */
-}
-.lms-app svg circle[stroke]:not([stroke="none"]) {
-  /* progress ring stroke; VERIFY LIVE which ring to recolour */
-}
-
-/* ---- 7. Cards -> mockup radius + soft shadow ---------------------------- */
-.lms-app [class*="card"],
-#app [class*="card"] {
-  border-radius: var(--cse-r-card, 16px);
-}
-
-/* ---- 8. Tabs: active underline -> brand primary ------------------------- */
-.lms-app [role="tab"][aria-selected="true"],
-#app [role="tab"][aria-selected="true"] {
-  border-bottom-color: var(--cse-primary) !important; /* VERIFY LIVE */
-  color: var(--cse-ink, #111A33);
-}
-
-/* =========================================================================
-   TUNING CHECKLIST (do on the live site, desktop Claude with server + browser):
-   1. Open https://demo.combatsportseducation.com/lms, DevTools -> Elements.
-   2. For each  VERIFY LIVE  rule, inspect the real element, read its actual
-      class / CSS variable, and correct the selector here.
-   3. Rebuild + reload:  bench build --app cse_branding && sudo supervisorctl restart all
-      (the /lms link already points at the brand_css endpoint, which now includes
-       this file — no nginx change needed once the snippet is in place).
-   4. Iterate until the sidebar is navy, primary actions are the brand red, and
-      the app font is Plus Jakarta Sans.
-   ========================================================================= */
