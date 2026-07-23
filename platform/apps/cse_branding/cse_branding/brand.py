@@ -108,18 +108,29 @@ def brand_css():
     """
     css = "\n".join(
         [
-            render_brand_css(),
             _read_css("public", "css", "cse-fonts.css"),
             _read_css("public", "css", "cse-design-system.css"),
             # LMS app skin: overrides that push the stock /lms Vue app toward the
-            # mockups. Appended last so it wins the cascade. First pass — tuned
-            # live against the rendered app (see the file's tuning checklist).
+            # mockups. Tuned live against the rendered app (see the file's
+            # tuning checklist).
             _read_css("public", "css", "cse-lms-skin.css"),
+            # Per-federation BRAND :root LAST. cse-design-system.css declares its
+            # own :root{--cse-primary…} brand defaults; at equal specificity CSS
+            # resolves by source order, so the federation override must come
+            # after it to actually win. This is what makes editing the CSE Login
+            # Branding record re-theme every surface.
+            render_brand_css(),
         ]
     )
 
-    frappe.response["type"] = "binary"
+    # Serve as a real stylesheet: use the "download" response type (-> as_raw),
+    # which honours `content_type` and `display_content_as`. The "binary" type
+    # hardcodes application/octet-stream, which browsers REJECT as a stylesheet
+    # when the site sends `X-Content-Type-Options: nosniff` (nginx does) — that
+    # silently breaks every --cse-* token on surfaces that <link> this endpoint.
+    frappe.response["type"] = "download"
     frappe.response["filename"] = "brand.css"
     frappe.response["filecontent"] = css.encode("utf-8")
-    frappe.response["content_type"] = "text/css; charset=utf-8"
+    frappe.response["content_type"] = "text/css"
+    frappe.response["display_content_as"] = "inline"
     return
