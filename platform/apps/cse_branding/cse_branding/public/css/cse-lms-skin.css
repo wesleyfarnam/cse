@@ -97,3 +97,85 @@
   background-color: var(--cse-primary-hover) !important;
   border-color: var(--cse-primary-hover) !important;
 }
+
+/* =========================================================================
+   CSE LMS SKIN — BATCH 3 (Learning Management) design-language layer
+   Source of truth: claude.ai/design project 9a52…, DESIGN_TOKENS.md.
+   Sealed-box: CSS only, against real frappe-ui classes (verified live DOM).
+   Brings the light-canvas + white-card system to My Courses / Certifications
+   / Statistics. Per-course progress bars + Resume + discipline pills are DATA
+   the catalog DOM doesn't render — those need a JS augmentation layer, not CSS.
+   ========================================================================= */
+
+/* ---- Light design canvas (#F6F7F9) behind the content column ------------ */
+#app .bg-surface-white { background-color: #F6F7F9 !important; }
+
+/* ---- Cards -> white, hairline border, 16px radius, soft shadow ---------- */
+#app .bg-surface-cards {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E6E9F0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 2px rgba(16,26,51,0.04) !important;
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+/* hover lift (design: 0 8px 20px) */
+#app a:hover > .bg-surface-cards,
+#app .bg-surface-cards:hover {
+  box-shadow: 0 10px 24px rgba(16,26,51,0.10) !important;
+  transform: translateY(-2px);
+}
+/* neutralise frappe's doubled inner 1-2px borders so only the outer card border shows */
+#app .bg-surface-cards > [class*="border-t"],
+#app .bg-surface-cards > [class*="border-x"],
+#app .bg-surface-cards > [class*="border-b-2"],
+#app .bg-surface-cards > [class*="border-x-2"] {
+  border-color: transparent !important;
+}
+/* card thumbnail keeps the top corners round */
+#app .bg-surface-cards > [class*="rounded-t-md"] { border-radius: 16px 16px 0 0 !important; }
+#app .bg-surface-cards > [class*="rounded-b-md"] { border-radius: 0 0 16px 16px !important; }
+
+/* ---- Card title -> tighter, bolder (design: 16-20px/700) ---------------- */
+#app .bg-surface-cards .text-xl { font-weight: 700 !important; letter-spacing: -0.01em; }
+
+/* ---- Discipline / meta badges -> soft pill tint ------------------------- */
+#app .bg-surface-cards .rounded-md[class*="bg-surface-gray"],
+#app .bg-surface-cards .badge {
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em;
+}
+
+/* ---- Pill tabs: active -> brand red ------------------------------------- */
+#app .bg-surface-gray-2 button[aria-selected="true"],
+#app .bg-surface-gray-2 button.bg-surface-white {
+  background-color: var(--cse-primary) !important;
+  color: #FFFFFF !important;
+}
+
+/* ---- Section / page headings -> red accent bar + Saira ------------------ */
+#app .flex.min-h-0 h1,
+#app .flex.min-h-0 h2,
+#app .text-2xl.font-semibold,
+#app .text-xl.font-semibold.mb-4 {
+  font-family: var(--cse-font-display), var(--cse-font-app), sans-serif !important;
+  letter-spacing: 0.01em;
+}
+
+/* =========================================================================
+   BATCH 2 (Course Player) — accent highlight on the current lesson
+   Verified hook: the active lesson row is an <a> with router-link-exact-active
+   + the frappe-ui gray-2 highlight. Re-point it to the brand-red tint with a
+   red left accent bar, matching the design's "current lesson" state.
+   ========================================================================= */
+#app a.router-link-exact-active.py-2[class*="ps-9"],
+#app a.router-link-exact-active.py-2.text-ink-gray-9 {
+  background-color: #FDECEE !important;
+  color: #C01F2F !important;
+  box-shadow: inset 3px 0 0 var(--cse-primary);
+  font-weight: 700;
+}
+#app a.router-link-exact-active.py-2[class*="ps-9"] svg,
+#app a.router-link-exact-active.py-2.text-ink-gray-9 svg {
+  color: #C01F2F !important;
+}
