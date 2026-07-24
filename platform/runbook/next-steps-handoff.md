@@ -74,9 +74,12 @@ cutover, which silently needs email.
   (values from the provider). This is the deliverability foundation — do it carefully.
 - Configure a Frappe **Email Account** (outgoing, SMTP or the provider's API) as the
   site's default sender. Set the "Auto Reply"/notification sender + `email_id`.
-- Build `platform/scripts/configure_email.py` (run via `run_on_site.py`, env-driven:
-  SMTP host/port/user/password or API key, sender address) so it's repeatable per
-  federation and wireable into the `cse_console` wizard as a setup step.
+- **`platform/scripts/configure_email.py` is BUILT** — run via `run_on_site.py`,
+  env-driven (EMAIL_SENDER, SMTP_SERVER, SMTP_PORT, SMTP_LOGIN, SMTP_PASSWORD,
+  SMTP_TLS/SSL). Creates the outgoing Frappe Email Account (default sender) and
+  sets the site's auto-email id. Idempotent; skips cleanly if creds are missing.
+  Deploy = get provider creds + add SPF/DKIM/DMARC DNS, then run it. Wireable into
+  the console wizard as an email step.
 - **Verify:** Desk → Email Account → send a test; watch the **Email Queue**; then do
   a real end-to-end **password reset** on a migrated student account.
 
