@@ -177,7 +177,7 @@
 </div>
 
 <script>
-  var S=0, BRAND='#DB2B3A';
+  var S=0, BRAND='#DB2B3A', LOGO_URL=null, LOGO_PULLED=false;
   var scr=document.getElementById('scrim'), wmain=document.getElementById('wmain');
   function esc(s){return s;}
   var panels=[
@@ -197,8 +197,9 @@
         '<div class="field cfield"><label>Dark / sidebar</label><input type="color" id="cNavy" value="#131C3F" oninput="updatePreview()"><div class="hx" id="hNavy">#131C3F</div></div>'+
       '</div>'+
       '<div class="row2"><div class="field"><label>App font</label><select id="fontApp"><option>Plus Jakarta Sans</option><option>Inter</option><option>Manrope</option><option>Barlow</option></select></div><div class="field"><label>Display font</label><select id="fontDisp"><option>Saira Condensed</option><option>Barlow Condensed</option><option>Oswald</option><option>Anton</option></select></div></div>'+
-      '<div class="field"><label>Logo</label><input id="logoField" type="text" placeholder="Upload… or pulled from site" readonly style="color:var(--faint)"></div>'+
-      '<div class="prev"><div class="bar" id="pvBar"><span class="lb" id="pvLb"></span><span class="lt">WWA</span><span id="pvNav" style="margin-left:auto;font-size:12px;font-weight:600">Courses · Pricing</span></div>'+
+      '<div class="field"><label>Logo</label>'+
+        '<label class="upload" id="logoDrop"><input type="file" accept="image/*" onchange="logoPicked(this)" style="display:none"><span id="logoLabel">Drag a logo here or click to choose — or use Pull branding above</span></label></div>'+
+      '<div class="prev"><div class="bar" id="pvBar"><span id="pvLogo"></span><span class="lt" style="margin-left:9px">WWA</span><span id="pvNav" style="margin-left:auto;font-size:12px;font-weight:600">Courses · Pricing</span></div>'+
         '<div class="body"><span class="btnp" id="pvBtn">Enroll now</span> <a id="pvSec" style="margin-left:14px;font-weight:700;font-size:13px">Learn more →</a> <span class="muted" style="margin-left:8px">live preview</span></div></div>';},
     function(){return '<h2>Content</h2><p class="lead">Seed their courses — clone from the CSE library or import.</p>'+
       '<div class="field"><label>Source</label><select id="srcSel" onchange="toggleClone()"><option>Start empty</option><option selected>Clone from the CSE course library</option><option>Import a bundle (EzyCourse / CSV / Teachable)</option></select></div>'+
@@ -234,16 +235,29 @@
     var sec=document.getElementById('pvSec');if(sec)sec.style.color=s;
     var nav=document.getElementById('pvNav');if(nav)nav.style.color=s;
     [['hPrim','cPrim'],['hSec','cSec'],['hNavy','cNavy']].forEach(function(x){var h=document.getElementById(x[0]),c=document.getElementById(x[1]);if(h&&c)h.textContent=c.value.toUpperCase();});
+    var pl=document.getElementById('pvLogo');
+    if(pl){
+      if(LOGO_URL){pl.innerHTML='<img src="'+LOGO_URL+'" alt="logo" style="height:26px;max-width:96px;object-fit:contain;background:#fff;border-radius:4px;padding:2px 4px">';}
+      else if(LOGO_PULLED){pl.innerHTML='<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:'+p+'"><svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l7 3v6c0 4.4-3 8.5-7 9-4-.5-7-4.6-7-9V5l7-3z"/></svg></span>';}
+      else{pl.innerHTML='<span style="display:inline-block;width:3px;height:20px;border-radius:2px;background:'+p+'"></span>';}
+    }
+  }
+  function logoPicked(inp){
+    var f=inp.files&&inp.files[0];if(!f)return;
+    var r=new FileReader();
+    r.onload=function(e){LOGO_URL=e.target.result;LOGO_PULLED=false;var d=document.getElementById('logoDrop'),l=document.getElementById('logoLabel');if(d)d.classList.add('has');if(l)l.textContent='✓ '+f.name;updatePreview();};
+    r.readAsDataURL(f);
   }
   function setColors(p,s,n){var a=document.getElementById('cPrim'),b=document.getElementById('cSec'),c=document.getElementById('cNavy');if(a)a.value=p;if(b)b.value=s;if(c)c.value=n;updatePreview();}
   function pullBrand(){
     var u=(document.getElementById('pullUrl')||{}).value||'their site';
     // Demo palette. The real build calls cse_console.brandpull.pull_branding(u),
     // which returns primary / secondary(link) / navy / fonts / logo from the site.
+    LOGO_PULLED=true;LOGO_URL=null;
     setColors('#C8102E','#003DA5','#0A1A3F');
     var nt=document.getElementById('pullNote');
     if(nt)nt.innerHTML='<b style="color:var(--green)">✓ Pulled from '+u+'</b> — primary <b>#C8102E</b> · secondary <b>#003DA5</b> · dark <b>#0A1A3F</b> · fonts <b>Inter</b> + <b>Barlow Condensed</b> · logo found. Adjust anything below.';
-    var lf=document.getElementById('logoField');if(lf){lf.value='✓ logo detected from '+u;lf.style.color='var(--ink)';}
+    var d=document.getElementById('logoDrop'),l=document.getElementById('logoLabel');if(d)d.classList.add('has');if(l)l.textContent='✓ logo detected from '+u+' (upload a higher-res version anytime)';
     var fa=document.getElementById('fontApp');if(fa)fa.value='Inter';
     var fd=document.getElementById('fontDisp');if(fd)fd.value='Barlow Condensed';
   }
@@ -267,7 +281,7 @@
       rows[i].classList.add('run');rows[i].querySelector('.lg').textContent='running…';i++;setTimeout(run,650);
     })();
   }
-  function openWiz(){S=0;render();scr.classList.add('show');}
+  function openWiz(){S=0;LOGO_URL=null;LOGO_PULLED=false;render();scr.classList.add('show');}
   function closeWiz(){scr.classList.remove('show');}
   render();
 </script>
