@@ -96,6 +96,9 @@
   .upload{display:block;border:1.5px dashed #C9CFDD;border-radius:10px;padding:22px;text-align:center;color:var(--sec);cursor:pointer;font-weight:600;font-size:13.5px}
   .upload:hover{border-color:#2F54D0;background:#F7F9FF}
   .upload.has{border-style:solid;border-color:var(--green);color:var(--green);background:var(--green-bg)}
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .cfield input[type=color]{width:100%;height:42px;padding:3px;border:1px solid #D7DCE6;border-radius:9px;background:#fff;cursor:pointer}
+  .cfield .hx{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:4px;text-align:center}
   .wfoot{border-top:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px}
   .steplines{display:flex;flex-direction:column;gap:9px;margin-top:6px}
   .pstep{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;background:#fff}
@@ -184,16 +187,19 @@
     function(){return '<h2>Domain</h2><p class="lead">Their address on the platform, plus an optional custom domain.</p>'+
       '<div class="field"><label>Subdomain</label><input value="wwa"><div class="muted" style="margin-top:6px">→ wwa.combatsportseducation.com</div></div>'+
       '<div class="field"><label>Custom domain (optional)</label><input placeholder="training.wwa.org"><div class="muted" style="margin-top:6px">We’ll show the CNAME + issue SSL after provisioning.</div></div>';},
-    function(){return '<h2>Branding</h2><p class="lead">Give us their website and we’ll pull colors, fonts &amp; logo — then tweak.</p>'+
+    function(){return '<h2>Branding</h2><p class="lead">Give us their website and we’ll pull the full palette, fonts &amp; logo — then tweak.</p>'+
       '<div class="pullbox"><div class="field" style="margin:0"><label>Federation website — auto-pull branding</label>'+
         '<div style="display:flex;gap:8px"><input id="pullUrl" placeholder="usakickboxing.com" style="flex:1" value="usakickboxing.com"><button class="btn btn-primary" style="padding:11px 16px;white-space:nowrap" onclick="pullBrand()">✨ Pull branding</button></div>'+
-        '<div id="pullNote" class="muted" style="margin-top:8px">Detects the site’s primary color, fonts, and logo to prefill everything below.</div></div></div>'+
-      '<div class="field" style="margin-top:16px"><label>Primary color <span style="color:var(--faint);font-weight:400;text-transform:none">— pulled, or pick</span></label><div class="swatches">'+
-        ['#DB2B3A','#0A66C2','#2E7D5B','#7A3FF2','#E08600','#111A33'].map(function(c){return '<span class="sw" style="background:'+c+'" onclick="setBrand(\''+c+'\')"></span>';}).join('')+
-        '</div></div>'+
+        '<div id="pullNote" class="muted" style="margin-top:8px">Detects the site’s full color palette, fonts, and logo to prefill everything below.</div></div></div>'+
+      '<div class="row3" style="margin-top:16px">'+
+        '<div class="field cfield"><label>Primary</label><input type="color" id="cPrim" value="#DB2B3A" oninput="updatePreview()"><div class="hx" id="hPrim">#DB2B3A</div></div>'+
+        '<div class="field cfield"><label>Secondary</label><input type="color" id="cSec" value="#2F54D0" oninput="updatePreview()"><div class="hx" id="hSec">#2F54D0</div></div>'+
+        '<div class="field cfield"><label>Dark / sidebar</label><input type="color" id="cNavy" value="#131C3F" oninput="updatePreview()"><div class="hx" id="hNavy">#131C3F</div></div>'+
+      '</div>'+
       '<div class="row2"><div class="field"><label>App font</label><select id="fontApp"><option>Plus Jakarta Sans</option><option>Inter</option><option>Manrope</option><option>Barlow</option></select></div><div class="field"><label>Display font</label><select id="fontDisp"><option>Saira Condensed</option><option>Barlow Condensed</option><option>Oswald</option><option>Anton</option></select></div></div>'+
       '<div class="field"><label>Logo</label><input id="logoField" type="text" placeholder="Upload… or pulled from site" readonly style="color:var(--faint)"></div>'+
-      '<div class="prev"><div class="bar"><span class="lb" id="pvLb"></span><span class="lt" id="pvName">WWA</span></div><div class="body"><span class="btnp" id="pvBtn">Enroll now</span> <span class="muted" style="margin-left:8px">live brand preview</span></div></div>';},
+      '<div class="prev"><div class="bar" id="pvBar"><span class="lb" id="pvLb"></span><span class="lt">WWA</span><span id="pvNav" style="margin-left:auto;font-size:12px;font-weight:600">Courses · Pricing</span></div>'+
+        '<div class="body"><span class="btnp" id="pvBtn">Enroll now</span> <a id="pvSec" style="margin-left:14px;font-weight:700;font-size:13px">Learn more →</a> <span class="muted" style="margin-left:8px">live preview</span></div></div>';},
     function(){return '<h2>Content</h2><p class="lead">Seed their courses — clone from the CSE library or import.</p>'+
       '<div class="field"><label>Source</label><select id="srcSel" onchange="toggleClone()"><option>Start empty</option><option selected>Clone from the CSE course library</option><option>Import a bundle (EzyCourse / CSV / Teachable)</option></select></div>'+
       '<div id="cloneBox"><div class="field" style="margin-bottom:8px"><label>Courses to clone</label></div>'+
@@ -219,13 +225,24 @@
         ['Create site','Install LMS + branding','Apply branding & roles','Certificate rule','Content & clients','Payments','Admin user','Smoke-test'].map(function(x){return '<div class="pstep"><span class="st"></span><span class="lb">'+x+'</span><span class="lg"></span></div>';}).join('')+
       '</div>';}
   ];
-  function updatePreview(){var a=document.getElementById('pvLb'),b=document.getElementById('pvBtn');if(a)a.style.background=BRAND;if(b)b.style.background=BRAND;}
-  function setBrand(c){BRAND=c;updatePreview();}
+  function gv(id,f){var e=document.getElementById(id);return e?e.value:f;}
+  function updatePreview(){
+    var p=gv('cPrim','#DB2B3A'),s=gv('cSec','#2F54D0'),n=gv('cNavy','#131C3F');
+    var bar=document.getElementById('pvBar');if(bar)bar.style.background=n;
+    var lb=document.getElementById('pvLb');if(lb)lb.style.background=p;
+    var btn=document.getElementById('pvBtn');if(btn)btn.style.background=p;
+    var sec=document.getElementById('pvSec');if(sec)sec.style.color=s;
+    var nav=document.getElementById('pvNav');if(nav)nav.style.color=s;
+    [['hPrim','cPrim'],['hSec','cSec'],['hNavy','cNavy']].forEach(function(x){var h=document.getElementById(x[0]),c=document.getElementById(x[1]);if(h&&c)h.textContent=c.value.toUpperCase();});
+  }
+  function setColors(p,s,n){var a=document.getElementById('cPrim'),b=document.getElementById('cSec'),c=document.getElementById('cNavy');if(a)a.value=p;if(b)b.value=s;if(c)c.value=n;updatePreview();}
   function pullBrand(){
     var u=(document.getElementById('pullUrl')||{}).value||'their site';
-    BRAND='#0A66C2';updatePreview();
-    var n=document.getElementById('pullNote');
-    if(n)n.innerHTML='<b style="color:var(--green)">✓ Pulled from '+u+'</b> — primary <b>#0A66C2</b> · fonts <b>Inter</b> + <b>Barlow Condensed</b> · logo found. Adjust anything below.';
+    // Demo palette. The real build calls cse_console.brandpull.pull_branding(u),
+    // which returns primary / secondary(link) / navy / fonts / logo from the site.
+    setColors('#C8102E','#003DA5','#0A1A3F');
+    var nt=document.getElementById('pullNote');
+    if(nt)nt.innerHTML='<b style="color:var(--green)">✓ Pulled from '+u+'</b> — primary <b>#C8102E</b> · secondary <b>#003DA5</b> · dark <b>#0A1A3F</b> · fonts <b>Inter</b> + <b>Barlow Condensed</b> · logo found. Adjust anything below.';
     var lf=document.getElementById('logoField');if(lf){lf.value='✓ logo detected from '+u;lf.style.color='var(--ink)';}
     var fa=document.getElementById('fontApp');if(fa)fa.value='Inter';
     var fd=document.getElementById('fontDisp');if(fd)fd.value='Barlow Condensed';

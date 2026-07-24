@@ -48,13 +48,16 @@ def pull_branding(url: str) -> dict:
     colors = extract_colors(html)
     fonts = extract_fonts(html)
     primary = colors[0] if colors else None
+    secondary = _pick_secondary(colors, primary)
 
     return {
         "source": url,
+        # Full brand-token set — every --cse-* colour, not just the primary.
         "primary": primary,
         "primary_hover": _shade(primary, -0.14) if primary else None,
         "primary_dark": _shade(primary, 0.18) if primary else None,
-        "navy": _pick_dark(colors) or "#131C3F",
+        "link": secondary,          # secondary / accent (e.g. the blue in a red+blue brand)
+        "navy": _pick_dark(colors) or "#131C3F",   # dark chrome / sidebar
         "font_app": fonts.get("app"),
         "font_display": fonts.get("display"),
         "logo_url": extract_logo(html, url),
@@ -236,3 +239,34 @@ def _pick_dark(colors):
         if v < 0.35 and (best is None or v < best[0]):
             best = (v, h)
     return best[1] if best else None
+
+
+def _hue(h):
+    r, g, b = _hex_to_rgb(h)
+    return colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)[0]
+
+
+def _pick_secondary(colors, primary):
+    """A secondary/accent color: the palette entry whose hue is most different
+    from the primary (e.g. the blue in a red+blue brand). Skips near-dark chrome
+    so it doesn't just return the navy. Falls back to the primary's complement."""
+    if not primary or not colors:
+        return None
+    ph = _hue(primary)
+    best = None
+    for h in colors[1:]:
+        r, g, b = _hex_to_rgb(h)
+        _, _, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+        if v < 0.30:
+            continue  # that's the dark chrome, not a secondary accent
+        d = abs(_hue(h) - ph)
+        d = min(d, 1 - d)  # circular hue distance
+        if d > 0.08 and (best is None or d > best[0]):
+            best = (d, h)
+    if best:
+        return best[1]
+    # fallback: rotate the primary hue ~150° for a distinct accent
+    r, g, b = _hex_to_rgb(primary)
+    hh, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+    r2, g2, b2 = colorsys.hsv_to_rgb((hh + 0.42) % 1.0, max(s, 0.5), max(v, 0.6))
+    return _rgb_to_hex(int(r2 * 255), int(g2 * 255), int(b2 * 255))
