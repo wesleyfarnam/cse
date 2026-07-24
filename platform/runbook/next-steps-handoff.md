@@ -19,6 +19,49 @@ before changes: `bench --site demo.combatsportseducation.com backup --with-files
 - **Biggest gap:** the platform has **no email configured** — nothing automated
   can send.
 
+## Federation setup console — the admin "add a client" dashboard
+
+The operator dashboard to **see all clients and spin up a new one** (name → domain
+→ branding → content → clients → payments → admin → provision). The engine is
+built (`cse_console`: CSE Federation doctype + `provisioning.py`). Two steps:
+deploy the engine so you can add clients today, then build the designed dashboard
+on top. Design target: `platform/apps/cse_console/design/` (open the prototype
+HTML + read its README).
+
+### A. Deploy the cse_console engine → a working admin view today
+
+```text
+On the server (ssh root@5.78.185.237 → sudo -iu frappe):
+1. Back up: bench --site demo.combatsportseducation.com backup --with-files
+2. Get the app onto the bench (same pattern as cse_branding): rsync
+   platform/apps/cse_console into ~/frappe-bench/apps/cse_console, give it a git
+   commit (git init + commit if needed so bench version works).
+3. Install on the site + apply:
+   bench --site demo.combatsportseducation.com install-app cse_console
+   bench --site demo.combatsportseducation.com migrate
+   bench build && bench --site demo.combatsportseducation.com clear-cache
+   sudo supervisorctl restart all
+4. Confirm the admin view: log into Desk as Administrator and open
+   /app/cse-federation — the "all clients" list + New button are there.
+5. DRY-RUN a new federation (throwaway subdomain, NO real Stripe keys, NO DNS) to
+   confirm provisioning.py runs the 8 steps and writes per-step status. Report
+   what worked / errored. Do not run real payments or point DNS yet.
+```
+
+### B. Build the designed Operator Console dashboard (after A)
+
+```text
+Build the CSE Operator Console as a Frappe UI page in cse_console, following
+platform/apps/cse_console/design/ (prototype + README):
+- Dashboard: list CSE Federation records with stat tiles + status pills (from the
+  doc's status field) + a prominent "Add New Federation".
+- Wizard: the 8 steps mapping to the doctype sections; on submit create a CSE
+  Federation doc and call cse_console.provisioning.provision_federation, streaming
+  the provisioning_steps child table live (Pending/Running/Done/Failed).
+- Reuse the CSE brand tokens; the Branding step feeds the CSE Login Branding record.
+Operator-only (System Manager / CSE User).
+```
+
 ## Next work, in priority order
 
 ### 1. Email delivery — DO THIS FIRST (unblocks everything)
@@ -66,8 +109,8 @@ cutover, which silently needs email.
 ### Housekeeping (any time)
 - Confirm the server is running the latest branch commit and the test brand color is
   reverted to `#d11f2d` (hard-refresh `/lms`, `/home`).
-- Deploy + smoke-test the `cse_console` app (see `federation-provisioning.md`).
 - Merge PR #12 first, then #14 (both green, conflict-free).
+- (Console deploy + dashboard build now have their own section above.)
 
 ## Guardrails
 - Email + Stripe keys and DNS secrets are sensitive — never commit them; pass via env
