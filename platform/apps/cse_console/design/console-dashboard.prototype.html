@@ -187,7 +187,7 @@
     function(){return '<h2>Domain</h2><p class="lead">Their address on the platform, plus an optional custom domain.</p>'+
       '<div class="field"><label>Subdomain</label><input value="wwa"><div class="muted" style="margin-top:6px">→ wwa.combatsportseducation.com</div></div>'+
       '<div class="field"><label>Custom domain (optional)</label><input placeholder="training.wwa.org"><div class="muted" style="margin-top:6px">We’ll show the CNAME + issue SSL after provisioning.</div></div>';},
-    function(){return '<h2>Branding</h2><p class="lead">Give us their website and we’ll pull the full palette, fonts &amp; logo — then tweak.</p>'+
+    function(){return '<h2>Branding</h2><p class="lead">Upload their logo and we read the palette straight from it — or pull from their website on the live server. Then tweak.</p>'+
       '<div class="pullbox"><div class="field" style="margin:0"><label>Federation website — auto-pull branding</label>'+
         '<div style="display:flex;gap:8px"><input id="pullUrl" placeholder="usakickboxing.com" style="flex:1" value="usakickboxing.com"><button class="btn btn-primary" style="padding:11px 16px;white-space:nowrap" onclick="pullBrand()">✨ Pull branding</button></div>'+
         '<div id="pullNote" class="muted" style="margin-top:8px">Detects the site’s full color palette, fonts, and logo to prefill everything below.</div></div></div>'+
@@ -198,7 +198,7 @@
       '</div>'+
       '<div class="row2"><div class="field"><label>App font</label><select id="fontApp"><option>Plus Jakarta Sans</option><option>Inter</option><option>Manrope</option><option>Barlow</option></select></div><div class="field"><label>Display font</label><select id="fontDisp"><option>Saira Condensed</option><option>Barlow Condensed</option><option>Oswald</option><option>Anton</option></select></div></div>'+
       '<div class="field"><label>Logo</label>'+
-        '<label class="upload" id="logoDrop"><input type="file" accept="image/*" onchange="logoPicked(this)" style="display:none"><span id="logoLabel">Drag a logo here or click to choose — or use Pull branding above</span></label></div>'+
+        '<label class="upload" id="logoDrop"><input type="file" accept="image/*" onchange="logoPicked(this)" style="display:none"><span id="logoLabel">Drag the logo here or click — we read the brand palette straight from it</span></label></div>'+
       '<div class="prev"><div class="bar" id="pvBar"><span id="pvLogo"></span><span class="lt" id="pvWord" style="margin-left:9px">WWA</span><span id="pvNav" style="margin-left:auto;font-size:12px;font-weight:600">Courses · Pricing</span></div>'+
         '<div class="body"><span class="btnp" id="pvBtn">Enroll now</span> <a id="pvSec" style="margin-left:14px;font-weight:700;font-size:13px">Learn more →</a> <span class="muted" style="margin-left:8px">live preview</span></div></div>';},
     function(){return '<h2>Content</h2><p class="lead">Seed their courses — clone from the CSE library or import.</p>'+
@@ -242,39 +242,60 @@
       else{pl.innerHTML='<span style="display:inline-block;width:3px;height:20px;border-radius:2px;background:'+p+'"></span>';}
     }
   }
+  // ---- REAL palette extraction from an uploaded logo/image (Canvas, client-side) ----
+  function rgb2hsv(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0;
+    if(d){if(mx===r)h=((g-b)/d+6)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h/=6;}
+    return[h,mx?d/mx:0,mx];}
+  function toHex(r,g,b){function x(v){return('0'+Math.round(v).toString(16)).slice(-2);}return('#'+x(r)+x(g)+x(b)).toUpperCase();}
+  function hsvHex(h,s,v){var i=Math.floor(h*6),f=h*6-i,p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s),r,g,b;
+    switch(i%6){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;default:r=v;g=p;b=q;}return toHex(r*255,g*255,b*255);}
+  function paletteFromImage(img){
+    var W=64,H=Math.max(1,Math.round(64*img.height/img.width));
+    var cv=document.createElement('canvas');cv.width=W;cv.height=H;
+    var ctx=cv.getContext('2d');ctx.drawImage(img,0,0,W,H);
+    var data;try{data=ctx.getImageData(0,0,W,H).data;}catch(e){return null;}
+    var bk={};
+    for(var i=0;i<data.length;i+=4){if(data[i+3]<128)continue;var R=data[i],G=data[i+1],B=data[i+2];
+      var k=(R>>4)+'-'+(G>>4)+'-'+(B>>4);if(!bk[k])bk[k]={n:0,r:0,g:0,b:0};var q=bk[k];q.n++;q.r+=R;q.g+=G;q.b+=B;}
+    var arr=[];for(var key in bk){var q=bk[key];var R=q.r/q.n,G=q.g/q.n,B=q.b/q.n;var hsv=rgb2hsv(R,G,B);arr.push({r:R,g:G,b:B,n:q.n,h:hsv[0],s:hsv[1],v:hsv[2]});}
+    if(!arr.length)return null;
+    var chroma=arr.filter(function(x){return x.s>0.18&&x.v>0.15&&x.v<0.96;});
+    chroma.sort(function(a,b){return b.n*(0.5+b.s)-a.n*(0.5+a.s);});
+    var primary=chroma[0]||arr.slice().sort(function(a,b){return b.n-a.n;})[0];
+    var secondary=null,sd=0.08;chroma.forEach(function(x){var dd=Math.abs(x.h-primary.h);dd=Math.min(dd,1-dd);if(dd>sd){sd=dd;secondary=x;}});
+    var dark=arr.filter(function(x){return x.v<0.4;}).sort(function(a,b){return a.v-b.v;})[0];
+    return{primary:toHex(primary.r,primary.g,primary.b),
+      secondary:secondary?toHex(secondary.r,secondary.g,secondary.b):hsvHex((primary.h+0.42)%1,Math.max(primary.s,0.5),Math.max(primary.v,0.55)),
+      navy:dark?toHex(dark.r,dark.g,dark.b):toHex(primary.r*0.28,primary.g*0.28,primary.b*0.34)};
+  }
   function logoPicked(inp){
     var f=inp.files&&inp.files[0];if(!f)return;
     var r=new FileReader();
-    r.onload=function(e){LOGO_URL=e.target.result;LOGO_PULLED=false;var d=document.getElementById('logoDrop'),l=document.getElementById('logoLabel');if(d)d.classList.add('has');if(l)l.textContent='✓ '+f.name;updatePreview();};
+    r.onload=function(e){
+      LOGO_URL=e.target.result;LOGO_PULLED=false;
+      var img=new Image();
+      img.onload=function(){
+        var pal=paletteFromImage(img);
+        var d=document.getElementById('logoDrop'),l=document.getElementById('logoLabel'),nt=document.getElementById('pullNote');
+        if(d)d.classList.add('has');
+        if(pal){setColors(pal.primary,pal.secondary,pal.navy);
+          if(l)l.textContent='✓ '+f.name+' — palette read from your logo';
+          if(nt)nt.innerHTML='<b style="color:var(--green)">✓ Palette read from your logo</b> — primary <b>'+pal.primary+'</b> · secondary <b>'+pal.secondary+'</b> · dark <b>'+pal.navy+'</b>. Adjust below.';
+        }else if(l){l.textContent='✓ '+f.name;}
+        updatePreview();
+      };
+      img.src=LOGO_URL;
+    };
     r.readAsDataURL(f);
   }
   function setColors(p,s,n){var a=document.getElementById('cPrim'),b=document.getElementById('cSec'),c=document.getElementById('cNavy');if(a)a.value=p;if(b)b.value=s;if(c)c.value=n;updatePreview();}
-  // Prototype-only: derive a DISTINCT palette + monogram from the domain so the
-  // change is visible (the sandbox can't fetch external sites). The real build
-  // calls cse_console.brandpull.pull_branding(u) → the site's actual colors +
-  // logo image + fonts.
-  function hashStr(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h*16777619)>>>0;}return h;}
-  function hsl2hex(h,s,l){s/=100;l/=100;var c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0;
-    if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}
-    function hx(v){return('0'+Math.round((v+m)*255).toString(16)).slice(-2);}return('#'+hx(r)+hx(g)+hx(b)).toUpperCase();}
-  function derive(url){
-    var core=(url||'brand').replace(/^https?:\/\//i,'').replace(/^www\./i,'').split(/[\/.]/)[0]||'brand';
-    var hh=hashStr(core.toLowerCase());
-    var h1=hh%360, h2=(h1+120+((hh>>4)%110))%360;
-    return {primary:hsl2hex(h1,70,45), secondary:hsl2hex(h2,62,46), navy:hsl2hex(h1,42,12),
-            initials:core.slice(0,2).toUpperCase(), name:core.toUpperCase().slice(0,10)};
-  }
   function pullBrand(){
     var u=(document.getElementById('pullUrl')||{}).value||'their site';
-    var d=derive(u);
-    LOGO_PULLED=true;LOGO_URL=null;MONO=d.initials;
-    setColors(d.primary,d.secondary,d.navy);
-    var w=document.getElementById('pvWord');if(w)w.textContent=d.name;
     var nt=document.getElementById('pullNote');
-    if(nt)nt.innerHTML='<b style="color:var(--green)">✓ Pulled from '+u+'</b> — primary <b>'+d.primary+'</b> · secondary <b>'+d.secondary+'</b> · dark <b>'+d.navy+'</b> · fonts <b>Inter</b> + <b>Barlow Condensed</b> · logo found. Adjust anything below.';
-    var dd=document.getElementById('logoDrop'),l=document.getElementById('logoLabel');if(dd)dd.classList.add('has');if(l)l.textContent='✓ logo detected from '+u+' — shown in the preview (upload a higher-res version anytime)';
-    var fa=document.getElementById('fontApp');if(fa)fa.value='Inter';
-    var fd=document.getElementById('fontDisp');if(fd)fd.value='Barlow Condensed';
+    // Honest: the real site-fetch runs server-side (cse_console.brandpull) — it
+    // can't run in this sandboxed preview, and some sites block bots (403). The
+    // path that works everywhere: upload the logo below → palette read from it.
+    if(nt)nt.innerHTML='<b>On the live server</b> this reads '+u+'’s colors, fonts &amp; logo automatically. This preview can’t reach external sites, so <b>upload the logo below</b> — we read the real palette straight from the image.';
   }
   function toggleClone(){var v=(document.getElementById('srcSel')||{}).value||'';var cb=document.getElementById('cloneBox'),ib=document.getElementById('importBox');if(cb)cb.style.display=/Clone/.test(v)?'block':'none';if(ib)ib.style.display=/Import/.test(v)?'block':'none';}
   function toggleImport(){var v=(document.getElementById('impSel')||{}).value||'';var cv=document.getElementById('csvBox'),bd=document.getElementById('bundleBox');if(cv)cv.style.display=/CSV/.test(v)?'block':'none';if(bd)bd.style.display=/bundle/.test(v)?'block':'none';}

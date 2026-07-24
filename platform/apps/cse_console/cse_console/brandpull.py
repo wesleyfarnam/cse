@@ -45,8 +45,11 @@ def pull_branding(url: str) -> dict:
     _assert_public(url)
 
     html = _fetch(url)
-    colors = extract_colors(html)
-    fonts = extract_fonts(html)
+    # Many sites keep their brand colors in LINKED stylesheets, not inline — so
+    # extract from the HTML plus a few same-origin CSS files.
+    corpus = html + "\n" + _fetch_linked_css(url, html)
+    colors = extract_colors(corpus)
+    fonts = extract_fonts(corpus)
     primary = colors[0] if colors else None
     secondary = _pick_secondary(colors, primary)
 
@@ -185,13 +188,47 @@ def _assert_public(url: str):
 
 def _fetch(url: str) -> str:
     import requests
-    r = requests.get(
-        url, timeout=_TIMEOUT, stream=True,
-        headers={"User-Agent": "CSE-BrandPull/1.0"},
-    )
-    r.raise_for_status()
+    try:
+        r = requests.get(
+            url, timeout=_TIMEOUT, stream=True,
+            headers={"User-Agent": "Mozilla/5.0 (compatible; CSE-BrandPull/1.0)"},
+        )
+    except requests.RequestException:
+        frappe.throw("Could not reach that site. Upload the logo instead and we'll read the palette from it.")
+    if r.status_code == 403 or r.status_code == 429:
+        frappe.throw("That site blocks automated requests. Upload the logo instead and we'll read the palette from it.")
+    if r.status_code >= 400:
+        frappe.throw("The site returned an error ({0}). Upload the logo instead.".format(r.status_code))
     chunk = r.raw.read(_MAX_BYTES, decode_content=True) or b""
     return chunk.decode(r.encoding or "utf-8", errors="ignore")
+
+
+_CSS_LINK_RE = re.compile(r'<link[^>]+rel=["\']stylesheet["\'][^>]*>', re.I)
+
+
+def _fetch_linked_css(base_url: str, html: str, max_files: int = 4) -> str:
+    """Fetch up to `max_files` same-origin linked stylesheets and return their
+    concatenated text (best-effort; failures are skipped silently)."""
+    import requests
+    base_host = urlparse(base_url).hostname
+    out, n = [], 0
+    for link in _CSS_LINK_RE.finditer(html):
+        m = _HREF_RE.search(link.group(0))
+        if not m:
+            continue
+        href = urljoin(base_url, m.group(1))
+        if urlparse(href).hostname != base_host:
+            continue  # same-origin only (avoids pulling framework CSS from CDNs)
+        try:
+            r = requests.get(href, timeout=_TIMEOUT, headers={"User-Agent": "CSE-BrandPull/1.0"})
+            if r.status_code < 400 and "css" in (r.headers.get("content-type", "") + href):
+                out.append(r.text[:_MAX_BYTES])
+                n += 1
+        except requests.RequestException:
+            pass
+        if n >= max_files:
+            break
+    return "\n".join(out)
 
 
 def _norm_hex(v: str):
