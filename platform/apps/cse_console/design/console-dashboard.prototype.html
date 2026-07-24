@@ -177,7 +177,7 @@
 </div>
 
 <script>
-  var S=0, BRAND='#DB2B3A', LOGO_URL=null, LOGO_PULLED=false;
+  var S=0, BRAND='#DB2B3A', LOGO_URL=null, LOGO_PULLED=false, MONO='WWA';
   var scr=document.getElementById('scrim'), wmain=document.getElementById('wmain');
   function esc(s){return s;}
   var panels=[
@@ -199,7 +199,7 @@
       '<div class="row2"><div class="field"><label>App font</label><select id="fontApp"><option>Plus Jakarta Sans</option><option>Inter</option><option>Manrope</option><option>Barlow</option></select></div><div class="field"><label>Display font</label><select id="fontDisp"><option>Saira Condensed</option><option>Barlow Condensed</option><option>Oswald</option><option>Anton</option></select></div></div>'+
       '<div class="field"><label>Logo</label>'+
         '<label class="upload" id="logoDrop"><input type="file" accept="image/*" onchange="logoPicked(this)" style="display:none"><span id="logoLabel">Drag a logo here or click to choose — or use Pull branding above</span></label></div>'+
-      '<div class="prev"><div class="bar" id="pvBar"><span id="pvLogo"></span><span class="lt" style="margin-left:9px">WWA</span><span id="pvNav" style="margin-left:auto;font-size:12px;font-weight:600">Courses · Pricing</span></div>'+
+      '<div class="prev"><div class="bar" id="pvBar"><span id="pvLogo"></span><span class="lt" id="pvWord" style="margin-left:9px">WWA</span><span id="pvNav" style="margin-left:auto;font-size:12px;font-weight:600">Courses · Pricing</span></div>'+
         '<div class="body"><span class="btnp" id="pvBtn">Enroll now</span> <a id="pvSec" style="margin-left:14px;font-weight:700;font-size:13px">Learn more →</a> <span class="muted" style="margin-left:8px">live preview</span></div></div>';},
     function(){return '<h2>Content</h2><p class="lead">Seed their courses — clone from the CSE library or import.</p>'+
       '<div class="field"><label>Source</label><select id="srcSel" onchange="toggleClone()"><option>Start empty</option><option selected>Clone from the CSE course library</option><option>Import a bundle (EzyCourse / CSV / Teachable)</option></select></div>'+
@@ -238,7 +238,7 @@
     var pl=document.getElementById('pvLogo');
     if(pl){
       if(LOGO_URL){pl.innerHTML='<img src="'+LOGO_URL+'" alt="logo" style="height:26px;max-width:96px;object-fit:contain;background:#fff;border-radius:4px;padding:2px 4px">';}
-      else if(LOGO_PULLED){pl.innerHTML='<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:'+p+'"><svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l7 3v6c0 4.4-3 8.5-7 9-4-.5-7-4.6-7-9V5l7-3z"/></svg></span>';}
+      else if(LOGO_PULLED){pl.innerHTML='<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:'+p+';color:#fff;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.02em">'+MONO+'</span>';}
       else{pl.innerHTML='<span style="display:inline-block;width:3px;height:20px;border-radius:2px;background:'+p+'"></span>';}
     }
   }
@@ -249,15 +249,30 @@
     r.readAsDataURL(f);
   }
   function setColors(p,s,n){var a=document.getElementById('cPrim'),b=document.getElementById('cSec'),c=document.getElementById('cNavy');if(a)a.value=p;if(b)b.value=s;if(c)c.value=n;updatePreview();}
+  // Prototype-only: derive a DISTINCT palette + monogram from the domain so the
+  // change is visible (the sandbox can't fetch external sites). The real build
+  // calls cse_console.brandpull.pull_branding(u) → the site's actual colors +
+  // logo image + fonts.
+  function hashStr(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h*16777619)>>>0;}return h;}
+  function hsl2hex(h,s,l){s/=100;l/=100;var c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0;
+    if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}
+    function hx(v){return('0'+Math.round((v+m)*255).toString(16)).slice(-2);}return('#'+hx(r)+hx(g)+hx(b)).toUpperCase();}
+  function derive(url){
+    var core=(url||'brand').replace(/^https?:\/\//i,'').replace(/^www\./i,'').split(/[\/.]/)[0]||'brand';
+    var hh=hashStr(core.toLowerCase());
+    var h1=hh%360, h2=(h1+120+((hh>>4)%110))%360;
+    return {primary:hsl2hex(h1,70,45), secondary:hsl2hex(h2,62,46), navy:hsl2hex(h1,42,12),
+            initials:core.slice(0,2).toUpperCase(), name:core.toUpperCase().slice(0,10)};
+  }
   function pullBrand(){
     var u=(document.getElementById('pullUrl')||{}).value||'their site';
-    // Demo palette. The real build calls cse_console.brandpull.pull_branding(u),
-    // which returns primary / secondary(link) / navy / fonts / logo from the site.
-    LOGO_PULLED=true;LOGO_URL=null;
-    setColors('#C8102E','#003DA5','#0A1A3F');
+    var d=derive(u);
+    LOGO_PULLED=true;LOGO_URL=null;MONO=d.initials;
+    setColors(d.primary,d.secondary,d.navy);
+    var w=document.getElementById('pvWord');if(w)w.textContent=d.name;
     var nt=document.getElementById('pullNote');
-    if(nt)nt.innerHTML='<b style="color:var(--green)">✓ Pulled from '+u+'</b> — primary <b>#C8102E</b> · secondary <b>#003DA5</b> · dark <b>#0A1A3F</b> · fonts <b>Inter</b> + <b>Barlow Condensed</b> · logo found. Adjust anything below.';
-    var d=document.getElementById('logoDrop'),l=document.getElementById('logoLabel');if(d)d.classList.add('has');if(l)l.textContent='✓ logo detected from '+u+' (upload a higher-res version anytime)';
+    if(nt)nt.innerHTML='<b style="color:var(--green)">✓ Pulled from '+u+'</b> — primary <b>'+d.primary+'</b> · secondary <b>'+d.secondary+'</b> · dark <b>'+d.navy+'</b> · fonts <b>Inter</b> + <b>Barlow Condensed</b> · logo found. Adjust anything below.';
+    var dd=document.getElementById('logoDrop'),l=document.getElementById('logoLabel');if(dd)dd.classList.add('has');if(l)l.textContent='✓ logo detected from '+u+' — shown in the preview (upload a higher-res version anytime)';
     var fa=document.getElementById('fontApp');if(fa)fa.value='Inter';
     var fd=document.getElementById('fontDisp');if(fd)fd.value='Barlow Condensed';
   }
