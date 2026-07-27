@@ -1,0 +1,232 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:federation_name",
+ "creation": "2026-07-22 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "federation_name",
+  "subdomain",
+  "custom_domain",
+  "branding_section",
+  "primary_color",
+  "navy_color",
+  "col_break_branding",
+  "font_app",
+  "font_display",
+  "logo",
+  "admin_section",
+  "admin_email",
+  "admin_first_name",
+  "admin_last_name",
+  "content_section",
+  "import_source",
+  "import_bundle_path",
+  "import_progress",
+  "payments_section",
+  "payment_provider",
+  "stripe_publishable_key",
+  "stripe_secret_key",
+  "payment_currency",
+  "status_section",
+  "status",
+  "provisioning_steps"
+ ],
+ "fields": [
+  {
+   "description": "Human-readable name for this federation, e.g. 'USA Kickboxing'. Also used as the document name.",
+   "fieldname": "federation_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Federation Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "DNS label only, e.g. 'usakb' -> usakb.combatsportseducation.com. The full site name is derived by the orchestrator.",
+   "fieldname": "subdomain",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Subdomain",
+   "reqd": 1
+  },
+  {
+   "description": "Optional vanity domain to add via `bench setup add-domain` + certbot, e.g. 'members.usakickboxing.org'. Leave blank to serve only on the subdomain.",
+   "fieldname": "custom_domain",
+   "fieldtype": "Data",
+   "label": "Custom Domain"
+  },
+  {
+   "fieldname": "branding_section",
+   "fieldtype": "Section Break",
+   "label": "Branding"
+  },
+  {
+   "default": "#d11f2d",
+   "description": "Primary brand color (--cse-primary). Fed to configure_branding_roles on the new site.",
+   "fieldname": "primary_color",
+   "fieldtype": "Color",
+   "label": "Primary Color"
+  },
+  {
+   "default": "#131C3F",
+   "description": "Deep navy for headers/sidebars (--cse-navy).",
+   "fieldname": "navy_color",
+   "fieldtype": "Color",
+   "label": "Navy Color"
+  },
+  {
+   "fieldname": "col_break_branding",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Plus Jakarta Sans",
+   "description": "Primary application/UI font family (--cse-font-app).",
+   "fieldname": "font_app",
+   "fieldtype": "Data",
+   "label": "App Font"
+  },
+  {
+   "default": "Saira Condensed",
+   "description": "Display/headline font family (--cse-font-display).",
+   "fieldname": "font_display",
+   "fieldtype": "Data",
+   "label": "Display Font"
+  },
+  {
+   "description": "Federation logo image. Uploaded to the new site during branding configuration.",
+   "fieldname": "logo",
+   "fieldtype": "Attach",
+   "label": "Logo"
+  },
+  {
+   "fieldname": "admin_section",
+   "fieldtype": "Section Break",
+   "label": "Admin"
+  },
+  {
+   "description": "Email for the federation's first admin user (create_admin_user.py ADMIN_EMAIL).",
+   "fieldname": "admin_email",
+   "fieldtype": "Data",
+   "label": "Admin Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "admin_first_name",
+   "fieldtype": "Data",
+   "label": "Admin First Name"
+  },
+  {
+   "fieldname": "admin_last_name",
+   "fieldtype": "Data",
+   "label": "Admin Last Name"
+  },
+  {
+   "fieldname": "content_section",
+   "fieldtype": "Section Break",
+   "label": "Content & Clients"
+  },
+  {
+   "default": "None",
+   "description": "Where the initial content/client bundle comes from. Drives which adapter import_bundle.py uses.",
+   "fieldname": "import_source",
+   "fieldtype": "Select",
+   "label": "Import Source",
+   "options": "None\nEzyCourse\nGeneric CSV\nOther"
+  },
+  {
+   "depends_on": "eval:doc.import_source && doc.import_source != 'None'",
+   "description": "Path to the export bundle directory on the server (import_bundle.py EXPORT_DIR).",
+   "fieldname": "import_bundle_path",
+   "fieldtype": "Data",
+   "label": "Import Bundle Path"
+  },
+  {
+   "default": "0",
+   "description": "Include learner progress in the import (import_bundle.py IMPORT_PROGRESS).",
+   "fieldname": "import_progress",
+   "fieldtype": "Check",
+   "label": "Import Progress"
+  },
+  {
+   "fieldname": "payments_section",
+   "fieldtype": "Section Break",
+   "label": "Payments"
+  },
+  {
+   "default": "None",
+   "fieldname": "payment_provider",
+   "fieldtype": "Select",
+   "label": "Payment Provider",
+   "options": "None\nStripe"
+  },
+  {
+   "depends_on": "eval:doc.payment_provider == 'Stripe'",
+   "fieldname": "stripe_publishable_key",
+   "fieldtype": "Data",
+   "label": "Stripe Publishable Key"
+  },
+  {
+   "depends_on": "eval:doc.payment_provider == 'Stripe'",
+   "description": "Stored encrypted (Password field). Written to the new site's payment settings by the orchestrator.",
+   "fieldname": "stripe_secret_key",
+   "fieldtype": "Password",
+   "label": "Stripe Secret Key"
+  },
+  {
+   "default": "USD",
+   "depends_on": "eval:doc.payment_provider && doc.payment_provider != 'None'",
+   "fieldname": "payment_currency",
+   "fieldtype": "Data",
+   "label": "Payment Currency"
+  },
+  {
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Status"
+  },
+  {
+   "default": "Draft",
+   "description": "Lifecycle of this federation. Advanced by the provisioning orchestrator.",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nProvisioning\nLive\nFailed"
+  },
+  {
+   "description": "Per-step provisioning log, written by cse_console.provisioning as the federation is stood up.",
+   "fieldname": "provisioning_steps",
+   "fieldtype": "Table",
+   "label": "Provisioning Steps",
+   "options": "CSE Provisioning Step"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-22 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "CSE Console",
+ "name": "CSE Federation",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

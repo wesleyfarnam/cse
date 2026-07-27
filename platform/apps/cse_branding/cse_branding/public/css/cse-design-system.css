@@ -1,0 +1,387 @@
+/* =========================================================================
+   CSE DESIGN SYSTEM
+   Tokenized CSS for the Combat Sports Education platform.
+
+   Served (concatenated with the per-federation brand overrides) by the
+   whitelisted endpoint:  cse_branding.brand.brand_css
+
+   Two token layers:
+     1. BRAND      - per-federation overridable. The DEFAULT values live in
+                     :root here; brand.brand_css re-emits :root with a
+                     federation's overrides layered on top. Constant across
+                     light/dark.
+     2. STRUCTURAL - constant across federations, themed by light/dark.
+                     Light defaults live in :root; dark is provided via BOTH
+                     @media(prefers-color-scheme:dark) AND an explicit
+                     :root[data-theme="dark"] override (with a matching
+                     :root[data-theme="light"] that restores light so an
+                     explicit light choice always wins the media query).
+
+   Every component below is styled ONLY through these tokens. Change a token,
+   re-theme the whole system.
+   ========================================================================= */
+
+
+/* =========================================================================
+   1. TOKENS  ::  :root  (brand defaults + structural LIGHT)
+   ========================================================================= */
+:root {
+
+  /* ---- BRAND (per-federation overridable) ---------------------------- */
+  --cse-primary:        #DB2B3A;   /* core brand red                       */
+  --cse-primary-hover:  #C01F2F;   /* pressed / hover on light            */
+  --cse-primary-dark:   #F04752;   /* brighter red for accents on dark    */
+  --cse-navy:           #131C3F;   /* sidebar / deep brand navy           */
+  --cse-link:           #2F54D0;   /* link + focus-ring blue              */
+
+  --cse-font-app:      'Plus Jakarta Sans'; /* UI / body typeface         */
+  --cse-font-display:  'Saira Condensed';   /* headline / display typeface*/
+
+  /* Theme-aware accent. Defaults to the brand primary in light; the dark
+     theme re-points it to --cse-primary-dark so accents read correctly on
+     the dark canvas without touching the constant brand tokens. */
+  --cse-accent:         var(--cse-primary);
+
+  /* ---- STRUCTURAL :: LIGHT (neutral surfaces) ------------------------ */
+  --cse-canvas:         #F6F7F9;   /* app canvas / working area           */
+  --cse-card:           #FFFFFF;   /* card + panel surface                */
+  --cse-border:         #E6E9F0;   /* default card / control border       */
+  --cse-hairline:       #F0F2F6;   /* faint divider / track fill          */
+  --cse-ink:            #111A33;   /* primary text (dark -> #EEF1FA)      */
+  --cse-secondary:      #5A6378;   /* secondary text                      */
+  --cse-faint:          #97A0B5;   /* faint text / inactive               */
+  --cse-input-border:   #D7DCE6;   /* form control resting border         */
+  --cse-page-bg:        #EBEDF2;   /* page shell behind the canvas        */
+
+  /* border-strong + topbar exist mainly for dark; light-safe defaults so
+     the tokens always resolve regardless of theme. */
+  --cse-border-strong:  #D7DCE6;   /* emphasised border (dark -> #364170) */
+  --cse-topbar:         #FFFFFF;   /* top bar surface (dark -> #10183A)   */
+
+  /* ---- STRUCTURAL :: SEMANTIC TINTS (constant, both themes) ---------- */
+  --cse-success-bg:     #E7F6EE;   --cse-success-fg:  #177A4C;
+  --cse-info-bg:        #EBF0FE;   --cse-info-fg:     #2746A8;
+  --cse-neutral-bg:     #EEF0F6;   --cse-neutral-fg:  #3A4565;
+
+  /* ---- STRUCTURAL :: RADIUS ----------------------------------------- */
+  --cse-r-card:  16px;   /* cards / panels        */
+  --cse-r-ctl:   10px;   /* buttons / inputs      */
+  --cse-r-pill:  999px;  /* pills / progress / chips */
+  --cse-r-frame: 20px;   /* large framing / modals */
+
+  /* ---- STRUCTURAL :: SHADOW ----------------------------------------- */
+  --cse-shadow-card:  0 1px 2px rgba(16, 26, 51, .04);
+  --cse-shadow-hover: 0 8px 20px rgba(16, 26, 51, .10);
+}
+
+
+/* =========================================================================
+   2. DARK THEME
+   Redefine ONLY the structural neutral tokens. Brand tokens stay constant;
+   --cse-accent flips to the brighter --cse-primary-dark for on-dark accents.
+
+   Provided twice so the OS preference and an explicit toggle both work:
+     (a) @media(prefers-color-scheme:dark)  - OS / browser preference
+     (b) :root[data-theme="dark"]           - explicit app toggle (wins)
+     (c) :root[data-theme="light"]          - explicit light restore, so a
+                                              light choice beats the media query
+   ========================================================================= */
+
+/* ---- shared dark palette (applied by both (a) and (b)) --------------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cse-accent:        var(--cse-primary-dark);
+
+    --cse-canvas:        #0C1226;
+    --cse-card:          #151D3B;
+    --cse-border:        #242E55;
+    --cse-border-strong: #364170;
+    --cse-hairline:      #242E55;
+    --cse-topbar:        #10183A;
+    --cse-ink:           #EEF1FA;   /* "text" in the dark spec            */
+    --cse-secondary:     #98A2C3;
+    --cse-faint:         #7C86AC;
+    --cse-input-border:  #364170;
+    --cse-page-bg:       #0C1226;
+  }
+}
+
+/* explicit dark toggle - identical palette, higher specificity so it wins */
+:root[data-theme="dark"] {
+  --cse-accent:        var(--cse-primary-dark);
+
+  --cse-canvas:        #0C1226;
+  --cse-card:          #151D3B;
+  --cse-border:        #242E55;
+  --cse-border-strong: #364170;
+  --cse-hairline:      #242E55;
+  --cse-topbar:        #10183A;
+  --cse-ink:           #EEF1FA;
+  --cse-secondary:     #98A2C3;
+  --cse-faint:         #7C86AC;
+  --cse-input-border:  #364170;
+  --cse-page-bg:       #0C1226;
+}
+
+/* explicit light toggle - restores the light palette even when the OS
+   prefers dark, so an in-app "light" choice always wins. */
+:root[data-theme="light"] {
+  --cse-accent:        var(--cse-primary);
+
+  --cse-canvas:        #F6F7F9;
+  --cse-card:          #FFFFFF;
+  --cse-border:        #E6E9F0;
+  --cse-border-strong: #D7DCE6;
+  --cse-hairline:      #F0F2F6;
+  --cse-topbar:        #FFFFFF;
+  --cse-ink:           #111A33;
+  --cse-secondary:     #5A6378;
+  --cse-faint:         #97A0B5;
+  --cse-input-border:  #D7DCE6;
+  --cse-page-bg:       #EBEDF2;
+}
+
+
+/* =========================================================================
+   3. COMPONENT LAYER
+   Everything below references tokens only - no raw colours except the
+   single documented on-primary text (#FFFFFF) and token-derived rgba rings.
+   ========================================================================= */
+
+
+/* ---- 3.1 Buttons ----------------------------------------------------- */
+.cse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--cse-font-app), system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 12px 22px;
+  border: 1px solid transparent;
+  border-radius: var(--cse-r-ctl);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color .15s ease, border-color .15s ease,
+              box-shadow .15s ease, color .15s ease;
+}
+
+/* primary - solid brand red */
+.cse-btn--primary {
+  background: var(--cse-primary);
+  color: #FFFFFF;
+}
+.cse-btn--primary:hover {
+  background: var(--cse-primary-hover);
+}
+
+/* secondary - outlined surface button */
+.cse-btn--secondary {
+  background: var(--cse-card);
+  color: var(--cse-ink);
+  border-color: var(--cse-border);
+}
+.cse-btn--secondary:hover {
+  border-color: var(--cse-border-strong);
+  background: var(--cse-hairline);
+}
+
+/* ghost - text-only, no chrome until hover */
+.cse-btn--ghost {
+  background: transparent;
+  color: var(--cse-primary);
+  border-color: transparent;
+}
+.cse-btn--ghost:hover {
+  background: var(--cse-hairline);
+}
+
+/* disabled - flat, non-interactive (variant class or the :disabled attr) */
+.cse-btn--disabled,
+.cse-btn:disabled {
+  background: var(--cse-hairline);
+  color: var(--cse-faint);
+  border-color: var(--cse-border);
+  cursor: not-allowed;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+
+/* ---- 3.2 Card -------------------------------------------------------- */
+.cse-card {
+  background: var(--cse-card);
+  border: 1px solid var(--cse-border);
+  border-radius: var(--cse-r-card);
+  box-shadow: var(--cse-shadow-card);
+  padding: 20px;
+  transition: box-shadow .18s ease;
+}
+.cse-card:hover {
+  box-shadow: var(--cse-shadow-hover);
+}
+
+
+/* ---- 3.3 Badge ------------------------------------------------------- */
+.cse-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--cse-font-app), system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 5px 10px;
+  border-radius: var(--cse-r-pill);
+  /* default tint: neutral chip */
+  background: var(--cse-neutral-bg);
+  color: var(--cse-neutral-fg);
+}
+/* discipline tag -> info tint */
+.cse-badge.is-discipline {
+  background: var(--cse-info-bg);
+  color: var(--cse-info-fg);
+}
+/* status tag -> success tint */
+.cse-badge.is-status {
+  background: var(--cse-success-bg);
+  color: var(--cse-success-fg);
+}
+
+
+/* ---- 3.4 Tabs -------------------------------------------------------- */
+.cse-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 24px;
+  border-bottom: 1px solid var(--cse-hairline);
+}
+.cse-tab {
+  appearance: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--cse-font-app), system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;             /* inactive weight */
+  color: var(--cse-faint);      /* inactive colour */
+  padding: 12px 2px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;          /* sit the underline on the tabs hairline */
+  transition: color .15s ease, border-color .15s ease;
+}
+.cse-tab:hover {
+  color: var(--cse-secondary);
+}
+.cse-tab.is-active {
+  color: var(--cse-ink);                  /* active ink */
+  font-weight: 700;                       /* active weight */
+  border-bottom-color: var(--cse-accent); /* 2px accent underline */
+}
+
+
+/* ---- 3.5 Progress :: bar --------------------------------------------- */
+.cse-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--cse-hairline);   /* track */
+  border-radius: var(--cse-r-pill);
+  overflow: hidden;
+}
+.cse-progress-bar__fill {
+  height: 100%;
+  width: 0%;                          /* set inline / via JS */
+  background: var(--cse-accent);      /* fill */
+  border-radius: var(--cse-r-pill);
+  transition: width .3s ease;
+}
+
+/* ---- 3.5 Progress :: ring (SVG, r26 stroke8) ------------------------- */
+/* Markup:
+   <svg class="cse-progress-ring" viewBox="0 0 60 60">
+     <circle class="cse-progress-ring__track" cx="30" cy="30" r="26"/>
+     <circle class="cse-progress-ring__fill"  cx="30" cy="30" r="26"/>
+   </svg>
+   Circumference = 2*pi*26 ~= 163.363. Set stroke-dashoffset to
+   163.363 * (1 - percent) to reveal the fill.                            */
+.cse-progress-ring {
+  width: 60px;
+  height: 60px;
+  transform: rotate(-90deg);          /* start the fill at 12 o'clock */
+}
+.cse-progress-ring__track {
+  fill: none;
+  stroke: var(--cse-hairline);
+  stroke-width: 8;
+}
+.cse-progress-ring__fill {
+  fill: none;
+  stroke: var(--cse-accent);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 163.363;
+  stroke-dashoffset: 163.363;         /* 0% by default */
+  transition: stroke-dashoffset .3s ease;
+}
+
+
+/* ---- 3.6 Sidebar + nav ---------------------------------------------- */
+.cse-sidebar {
+  width: 240px;
+  flex: 0 0 240px;
+  background: var(--cse-navy);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 12px;
+  min-height: 100vh;
+}
+.cse-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-family: var(--cse-font-app), system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #A9B2D0;                     /* resting nav text on navy */
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+.cse-nav-item:hover {
+  background: rgba(255, 255, 255, .06);
+  color: #FFFFFF;
+}
+.cse-nav-item.is-active {
+  background: var(--cse-primary);     /* solid red pill */
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(219, 43, 58, .35);
+}
+
+
+/* ---- 3.7 Input ------------------------------------------------------- */
+.cse-input {
+  display: block;
+  width: 100%;
+  font-family: var(--cse-font-app), system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--cse-ink);
+  background: var(--cse-card);
+  padding: 12px 14px;
+  border: 1px solid var(--cse-input-border);
+  border-radius: var(--cse-r-ctl);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.cse-input::placeholder {
+  color: var(--cse-faint);
+}
+.cse-input:focus {
+  outline: none;
+  border-color: var(--cse-link);
+  box-shadow: 0 0 0 4px rgba(47, 84, 208, .14);  /* --cse-link @ 14% ring */
+}

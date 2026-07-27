@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or 'Instructors — Combat Sports Education' }}</title>
+  <link rel="stylesheet" href="/api/method/cse_branding.brand.brand_css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  {% if google_fonts_url %}<link rel="stylesheet" href="{{ google_fonts_url }}">{% endif %}
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#F6F7F9;color:#111A33;font-family:var(--cse-font-app),'Plus Jakarta Sans',-apple-system,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+    a{color:inherit;text-decoration:none}
+    .display{font-family:var(--cse-font-display),'Saira Condensed',sans-serif;text-transform:uppercase;letter-spacing:.02em;line-height:1.02}
+    .btn{display:inline-flex;align-items:center;gap:9px;font-family:inherit;font-weight:700;cursor:pointer;border:1px solid transparent;border-radius:10px;transition:background .15s}
+    .btn-red{background:#DB2B3A;color:#fff}.btn-red:hover{background:#F04752}
+    .logo-mark{display:flex;align-items:center;gap:10px}
+    .logo-mark .lb{width:3px;height:28px;background:#DB2B3A;border-radius:2px}
+    .logo-mark .lt{font-family:var(--cse-font-display),'Saira Condensed',sans-serif;font-weight:700;font-size:22px;letter-spacing:.08em;color:#fff;line-height:1}
+    .logo-mark .ls{font-size:8.5px;font-weight:700;letter-spacing:.14em;color:#6E7AA3;text-transform:uppercase;margin-top:2px}
+    .navlink{font-size:14px;font-weight:600;color:#A9B2D0}.navlink:hover{color:#fff}
+    .pill{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:999px}
+    .pill-red{background:#FDECEE;color:#C01F2F}.pill-blue{background:#EBF0FE;color:#2746A8}.pill-neutral{background:#EEF0F6;color:#3A4565}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    .icard{background:#fff;border:1px solid #E6E9F0;border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(16,26,51,.04);transition:box-shadow .18s,transform .18s;display:block}
+    .icard:hover{box-shadow:0 8px 20px rgba(16,26,51,.10);transform:translateY(-2px)}
+    @media(max-width:1024px){.grid3{grid-template-columns:1fr}.hide-sm{display:none!important}}
+    @media(max-width:640px){.grid3{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<div style="height:72px;display:flex;align-items:center;gap:36px;padding:0 clamp(20px,6vw,120px);background:#0C1226;">
+  <a href="/home" class="logo-mark"><div class="lb"></div><div><div class="lt">CSE</div><div class="ls">Combat Sports Education</div></div></a>
+  <div class="hide-sm" style="display:flex;align-items:center;gap:28px;margin-left:24px;">
+    <a href="/lms/courses" class="navlink">Courses</a>
+    <a href="/instructors" class="navlink" style="color:#fff;border-bottom:2px solid #DB2B3A;padding-bottom:2px;">Instructors</a>
+    <a href="/pricing" class="navlink">Pricing</a>
+    <a href="/home" class="navlink">About</a>
+  </div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+    <a href="/login" class="btn" style="background:transparent;color:#fff;font-size:14px;padding:10px 16px;">Log in</a>
+    <a href="/login" class="btn btn-red" style="font-size:14px;padding:11px 20px;">Start free</a>
+  </div>
+</div>
+
+<div style="padding:48px clamp(20px,6vw,120px) 72px;">
+  <div class="display" style="font-size:clamp(34px,5vw,44px);color:#131C3F;">The coaching staff</div>
+  <div style="font-size:14.5px;color:#5A6378;margin-top:8px;max-width:560px;">Every CSE instructor has competed or cornered at the highest level of their sport — and teaches with a structured curriculum, not highlight clips.</div>
+
+  <div class="grid3" style="margin-top:32px;">
+    {% set coaches = [
+      ['Coach M. Alvarez','Boxing','pill-red','2× national amateur champion · 15 yrs coaching','4 courses','#26335F','#10183A'],
+      ['Prof. L. Tanaka','BJJ','pill-blue','IBJJF black belt, 3rd degree · world masters medalist','5 courses','#222F63','#0F1735'],
+      ['Coach D. Ruiz','Wrestling','pill-neutral','D1 All-American · pro MMA cornerman','3 courses','#2A3766','#141D40'],
+      ['Kru S. Phon','Muay Thai','pill-neutral','200+ fights · Lumpinee stadium veteran','3 courses','#1F2A54','#0C142E'],
+      ['Coach E. van der Berg','Kickboxing','pill-red','Dutch-style specialist · 2 world champions cornered','2 courses','#222E59','#0F1735'],
+      ['Coach A. Silva','MMA','pill-neutral','Former title challenger · 10 yrs pro, record 18–4','4 courses','#26335F','#131C3F'] ] %}
+    {% for c in coaches %}
+    <a href="/instructors" class="icard">
+      <div style="height:240px;background:linear-gradient(160deg,{{ c[5] }} 0%,{{ c[6] }} 100%);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"></path></svg>
+      </div>
+      <div style="padding:18px 20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div style="font-size:16px;font-weight:800;color:#111A33;">{{ c[0] }}</div>
+          <span class="pill {{ c[2] }}">{{ c[1] }}</span>
+        </div>
+        <div style="font-size:12.5px;color:#5A6378;margin-top:5px;">{{ c[3] }}</div>
+        <div style="font-size:12px;color:#97A0B5;font-weight:600;margin-top:8px;">{{ c[4] }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div style="background:#0C1226;border-top:1px solid rgba(255,255,255,.07);padding:48px clamp(20px,6vw,120px);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <a href="/home" class="logo-mark"><div class="lb"></div><div><div class="lt">CSE</div><div class="ls">Combat Sports Education</div></div></a>
+  <div style="font-size:12.5px;color:#6E7AA3;">© 2026 Combat Sports Education · Train hard. Train smart.</div>
+</div>
+
+</body>
+</html>

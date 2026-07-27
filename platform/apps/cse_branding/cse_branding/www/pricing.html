@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or 'Pricing — Combat Sports Education' }}</title>
+  <link rel="stylesheet" href="/api/method/cse_branding.brand.brand_css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  {% if google_fonts_url %}<link rel="stylesheet" href="{{ google_fonts_url }}">{% endif %}
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#0C1226;color:#111A33;font-family:var(--cse-font-app),'Plus Jakarta Sans',-apple-system,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+    a{color:inherit;text-decoration:none}
+    .display{font-family:var(--cse-font-display),'Saira Condensed',sans-serif;text-transform:uppercase;letter-spacing:.02em;line-height:1.02}
+    .btn{display:inline-flex;align-items:center;gap:9px;font-family:inherit;font-weight:700;cursor:pointer;border:1px solid transparent;border-radius:10px;transition:background .15s,border-color .15s}
+    .btn-red{background:#DB2B3A;color:#fff}.btn-red:hover{background:#F04752}
+    .logo-mark{display:flex;align-items:center;gap:10px}
+    .logo-mark .lb{width:3px;height:28px;background:#DB2B3A;border-radius:2px}
+    .logo-mark .lt{font-family:var(--cse-font-display),'Saira Condensed',sans-serif;font-weight:700;font-size:22px;letter-spacing:.08em;color:#fff;line-height:1}
+    .logo-mark .ls{font-size:8.5px;font-weight:700;letter-spacing:.14em;color:#6E7AA3;text-transform:uppercase;margin-top:2px}
+    .navlink{font-size:14px;font-weight:600;color:#A9B2D0}.navlink:hover{color:#fff}
+    .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch}
+    .plan{border-radius:18px;padding:32px;display:flex;flex-direction:column}
+    .plan-dark{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12)}
+    .plan-btn{width:100%;text-align:center;justify-content:center;padding:13px 0;font-size:14px;margin-top:auto}
+    .check{display:flex;gap:10px;align-items:flex-start}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    @media(max-width:900px){.plans,.grid2{grid-template-columns:1fr}.hide-sm{display:none!important}}
+  </style>
+</head>
+<body>
+
+<div style="height:72px;display:flex;align-items:center;gap:36px;padding:0 clamp(20px,6vw,120px);background:#0C1226;">
+  <a href="/home" class="logo-mark"><div class="lb"></div><div><div class="lt">CSE</div><div class="ls">Combat Sports Education</div></div></a>
+  <div class="hide-sm" style="display:flex;align-items:center;gap:28px;margin-left:24px;">
+    <a href="/lms/courses" class="navlink">Courses</a>
+    <a href="/instructors" class="navlink">Instructors</a>
+    <a href="/pricing" class="navlink" style="color:#fff;border-bottom:2px solid #DB2B3A;padding-bottom:2px;">Pricing</a>
+    <a href="/home" class="navlink">About</a>
+  </div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+    <a href="/login" class="btn" style="background:transparent;color:#fff;font-size:14px;padding:10px 16px;">Log in</a>
+    <a href="/login" class="btn btn-red" style="font-size:14px;padding:11px 20px;">Start free</a>
+  </div>
+</div>
+
+<!-- Dark header + plans -->
+<div style="background:#0C1226;padding:56px clamp(20px,6vw,120px) 72px;">
+  <div style="text-align:center;">
+    <div class="display" style="font-size:clamp(38px,6vw,54px);color:#fff;">Simple pricing.<br><span style="color:#F04752;">Serious training.</span></div>
+    <div style="font-size:15.5px;color:#A9B2D0;margin-top:14px;">Every plan starts with a 7-day free trial. No card required.</div>
+  </div>
+  <div class="plans" style="margin-top:44px;">
+    <!-- Monthly -->
+    <div class="plan plan-dark">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6E7AA3;">Monthly</div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-top:14px;"><span style="font-size:40px;font-weight:800;color:#fff;">$24</span><span style="font-size:14px;font-weight:600;color:#A9B2D0;">/month</span></div>
+      <div style="font-size:13px;color:#6E7AA3;margin-top:4px;">billed monthly · cancel anytime</div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-top:24px;">
+        {% for f in ['All courses, all six disciplines','Progress tracking & certificates','New releases as they drop'] %}
+        <div class="check"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F04752" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px;"><path d="M20 6L9 17l-5-5"></path></svg><span style="font-size:13.5px;color:#CBD2E8;line-height:1.5;">{{ f }}</span></div>
+        {% endfor %}
+      </div>
+      <a href="/login" class="btn plan-btn" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.3);">Start free trial</a>
+    </div>
+    <!-- Annual -->
+    <div class="plan" style="position:relative;background:#fff;border:2px solid #DB2B3A;box-shadow:0 16px 40px rgba(219,43,58,.25);">
+      <div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#DB2B3A;color:#fff;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:5px 14px;border-radius:999px;white-space:nowrap;">Best value · save 31%</div>
+      <div style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#97A0B5;">Annual</div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-top:14px;"><span style="font-size:40px;font-weight:800;color:#111A33;">$199</span><span style="font-size:14px;font-weight:600;color:#5A6378;">/year</span></div>
+      <div style="font-size:13px;color:#97A0B5;margin-top:4px;">works out to $16.60/month</div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-top:24px;">
+        {% for f in ['Everything in Monthly','Monthly live Q&As with coaches','Offline viewing in the app'] %}
+        <div class="check"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#DB2B3A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px;"><path d="M20 6L9 17l-5-5"></path></svg><span style="font-size:13.5px;color:#111A33;line-height:1.5;">{{ f }}</span></div>
+        {% endfor %}
+      </div>
+      <a href="/login" class="btn btn-red plan-btn" style="padding:14px 0;">Start free trial</a>
+    </div>
+    <!-- Single course -->
+    <div class="plan plan-dark">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6E7AA3;">Single course</div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-top:14px;"><span style="font-size:40px;font-weight:800;color:#fff;">$49–99</span></div>
+      <div style="font-size:13px;color:#6E7AA3;margin-top:4px;">one-time · yours forever</div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-top:24px;">
+        {% for f in ['Lifetime access to that course','Course certificate on completion','All future updates to the course'] %}
+        <div class="check"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F04752" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px;"><path d="M20 6L9 17l-5-5"></path></svg><span style="font-size:13.5px;color:#CBD2E8;line-height:1.5;">{{ f }}</span></div>
+        {% endfor %}
+      </div>
+      <a href="/lms/courses" class="btn plan-btn" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.3);">Browse courses</a>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:32px;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F04752" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+    <span style="font-size:13.5px;font-weight:600;color:#A9B2D0;">30-day money-back guarantee on every plan and purchase</span>
+  </div>
+</div>
+
+<!-- Explainer + FAQ (light) -->
+<div style="background:#F6F7F9;padding:64px clamp(20px,6vw,120px) 72px;">
+  <div class="grid2">
+    <div style="background:#fff;border:1px solid #E6E9F0;border-radius:16px;padding:28px;box-shadow:0 1px 2px rgba(16,26,51,.04);">
+      <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:#131C3F;color:#fff;padding:4px 9px;border-radius:999px;">Membership</span>
+      <div style="font-size:17px;font-weight:800;margin-top:14px;color:#111A33;">Best if you're building a practice</div>
+      <div style="font-size:14px;color:#5A6378;line-height:1.65;margin-top:8px;">You train more than one discipline, want structured progression over months, and care about streaks, quizzes, and live Q&amp;As. One subscription, the whole library.</div>
+    </div>
+    <div style="background:#fff;border:1px solid #E6E9F0;border-radius:16px;padding:28px;box-shadow:0 1px 2px rgba(16,26,51,.04);">
+      <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:#fff;color:#111A33;border:1px solid #D7DCE6;padding:3px 9px;border-radius:999px;">Single course</span>
+      <div style="font-size:17px;font-weight:800;margin-top:14px;color:#111A33;">Best if you're chasing one skill</div>
+      <div style="font-size:14px;color:#5A6378;line-height:1.65;margin-top:8px;">You want one specific curriculum — say, clinch work before a camp — and you want to own it forever, including future updates. No subscription attached.</div>
+    </div>
+  </div>
+  <div style="max-width:760px;margin:56px auto 0;">
+    <div style="font-size:20px;font-weight:800;text-align:center;color:#111A33;">Common questions</div>
+    <div style="background:#fff;border:1px solid #E6E9F0;border-radius:16px;box-shadow:0 1px 2px rgba(16,26,51,.04);overflow:hidden;margin-top:20px;">
+      <div style="padding:20px 24px;">
+        <div style="display:flex;align-items:center;gap:12px;"><span style="flex:1;font-size:15px;font-weight:700;">Can I cancel anytime?</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5A6378" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"></path></svg></div>
+        <div style="font-size:14px;color:#5A6378;line-height:1.65;margin-top:10px;">Yes. Cancel from Settings → Billing in two clicks. You keep access until the end of your paid period, and your progress is saved if you come back.</div>
+      </div>
+      {% for q in ['Do I keep courses I buy outright?','What happens after the free trial?'] %}
+      <div style="display:flex;align-items:center;gap:12px;padding:20px 24px;border-top:1px solid #F0F2F6;"><span style="flex:1;font-size:15px;font-weight:700;">{{ q }}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#97A0B5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div style="background:#0C1226;border-top:1px solid rgba(255,255,255,.07);padding:48px clamp(20px,6vw,120px);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <a href="/home" class="logo-mark"><div class="lb"></div><div><div class="lt">CSE</div><div class="ls">Combat Sports Education</div></div></a>
+  <div style="font-size:12.5px;color:#6E7AA3;">© 2026 Combat Sports Education · Train hard. Train smart.</div>
+</div>
+
+</body>
+</html>

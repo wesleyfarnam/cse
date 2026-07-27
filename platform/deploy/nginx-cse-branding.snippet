@@ -1,0 +1,56 @@
+# =============================================================================
+# nginx-cse-branding.snippet
+#
+# Themes the stock Frappe LMS Vue SPA (served under /lms) WITHOUT editing the
+# frappe/lms source (sealed-box rule). The LMS SPA is a pre-built single-page
+# app: it ships its own index.html and mounts a Vue root, so it BYPASSES every
+# Frappe include hook (app_include_css / web_include_css / update_website_context).
+# The only place left to reach it is the HTTP response on the way out — so we
+# rewrite the SPA's HTML with nginx sub_filter and inject, before </head>:
+#
+#   1. the per-federation brand stylesheet (the whitelisted endpoint
+#      cse_branding.brand.brand_css -> resolved :root{--cse-*} tokens + fonts +
+#      design system), and
+#   2. the Google Fonts stylesheet for the app + display families.
+#
+# Because the tokens come from the brand_css endpoint, editing the CSE Login
+# Branding record re-themes the /lms SPA too, with no rebuild of frappe/lms.
+#
+# -----------------------------------------------------------------------------
+# HOW TO INCLUDE IT in the bench-generated site nginx conf:
+#
+#   bench generates /etc/nginx/conf.d/frappe-bench.conf (do not hand-edit that
+#   file — bench overwrites it). Instead drop this snippet on disk, e.g.
+#     /etc/nginx/snippets/cse-branding.snippet
+#   and pull it into the LMS location. The cleanest sealed-box approach is a
+#   small override server/location include. If you manage the bench nginx
+#   template, add inside the site's `server { ... }` block:
+#
+#       location /lms {
+#           include /etc/nginx/snippets/cse-branding.snippet;
+#           try_files $uri $uri/ /lms/index.html;   # keep existing SPA routing
+#       }
+#
+#   If /lms is proxied to the Frappe/gunicorn upstream instead of served as
+#   static files, place the `include` inside that proxied location block (the
+#   proxy_set_header + sub_filter directives below are written for that case).
+#   After editing:  nginx -t  &&  systemctl reload nginx
+# =============================================================================
+
+# --- Uncompress the upstream response so sub_filter can see the HTML ----------
+# sub_filter can only rewrite an uncompressed body. If the upstream (gunicorn /
+# node / static gzip) returns gzip/br, clear Accept-Encoding on the way UP so it
+# replies in plain text. REQUIRED for the injection below to fire.
+proxy_set_header Accept-Encoding "";
+
+# --- Inject the brand + fonts stylesheets before </head> ----------------------
+# Insert both <link>s immediately before the closing </head> tag of the SPA
+# shell. Order: brand tokens/design-system first, then fonts.
+sub_filter '</head>' '<link id="cse-brand-css" rel="stylesheet" href="/api/method/cse_branding.brand.brand_css"><link id="cse-brand-fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Saira+Condensed:wght@600;700&display=swap"></head>';
+
+# Only rewrite the first match (the single <head> in the SPA shell).
+sub_filter_once on;
+
+# The SPA shell is HTML; restrict rewriting to HTML responses so we never touch
+# JS/JSON/asset bodies.
+sub_filter_types text/html;

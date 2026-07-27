@@ -1,0 +1,323 @@
+<title>CSE Operator Console — Prototype</title>
+<style>
+  :root{
+    --navy:#131C3F; --navy-deep:#0C1226; --primary:#DB2B3A; --primary-hover:#C01F2F; --primary-dark:#F04752;
+    --canvas:#F6F7F9; --card:#FFFFFF; --border:#E6E9F0; --hair:#F0F2F6;
+    --ink:#111A33; --sec:#5A6378; --faint:#97A0B5;
+    --green:#177A4C; --green-bg:#E7F6EE; --amber:#A9640C; --amber-bg:#FAEEDC;
+    --slate:#3A4565; --slate-bg:#EEF0F6; --red:#C01F2F; --red-bg:#FDECEE;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --disp:"Saira Condensed","Arial Narrow",system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55}
+  .disp{font-family:var(--disp);text-transform:uppercase;letter-spacing:.03em;font-weight:700}
+  button{font-family:inherit;cursor:pointer}
+  .app{display:flex;min-height:100vh}
+  .side{width:236px;flex:none;background:var(--navy);color:#A9B2D0;display:flex;flex-direction:column;padding:22px 16px}
+  .brand{display:flex;align-items:center;gap:10px;padding:0 6px 4px}
+  .brand .bar{width:4px;height:24px;background:var(--primary);border-radius:2px}
+  .brand .t{font-family:var(--disp);font-weight:700;font-size:20px;color:#fff;letter-spacing:.06em;text-transform:uppercase}
+  .brand .s{font-size:8px;font-weight:700;letter-spacing:.14em;color:#6E7AA3;text-transform:uppercase;margin-top:2px}
+  .nav{margin-top:22px;display:flex;flex-direction:column;gap:3px}
+  .nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#A9B2D0;font-weight:600;font-size:14px;text-decoration:none}
+  .nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+  .nav a.on{background:var(--primary);color:#fff;box-shadow:0 6px 14px rgba(219,43,58,.35)}
+  .nav .ic{width:16px;height:16px;flex:none}
+  .side .foot{margin-top:auto;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 13px}
+  .side .foot .k{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#6E7AA3;font-weight:700}
+  .side .foot .v{color:#fff;font-weight:600;font-size:13px;margin-top:3px}
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .top{height:62px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 26px;gap:14px}
+  .top .search{flex:1;max-width:340px;background:#F1F3F7;border:1px solid var(--border);border-radius:9px;padding:8px 12px;color:var(--faint);font-size:13px}
+  .top .av{margin-left:auto;width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px}
+  .content{padding:28px 30px;max-width:1120px;width:100%}
+  .phead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .phead h1{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:30px;margin:0;letter-spacing:.01em}
+  .phead .pbar{width:4px;height:30px;background:var(--primary);border-radius:2px;display:inline-block;vertical-align:-4px;margin-right:12px}
+  .phead p{color:var(--sec);margin:6px 0 0;font-size:14px}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;padding:11px 18px;border-radius:10px;border:1px solid transparent}
+  .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-hover)}
+  .btn-ghost{background:#fff;color:var(--ink);border-color:#D7DCE6}.btn-ghost:hover{background:#F1F3F7}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0 6px}
+  .tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(16,26,51,.04)}
+  .tile .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .tile .v{font-family:var(--disp);font-size:30px;font-weight:700;margin-top:6px}
+  .tile .d{font-size:12.5px;color:var(--sec);margin-top:2px}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:22px}
+  thead th{text-align:left;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);font-weight:700;background:#FAFBFC;padding:12px 16px;border-bottom:1px solid var(--border)}
+  td{padding:14px 16px;border-bottom:1px solid var(--hair);font-size:14px}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#FAFBFC;cursor:pointer}
+  .fed{display:flex;align-items:center;gap:11px}
+  .fed .logo{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;color:#fff;font-family:var(--disp);font-weight:700;font-size:13px;flex:none}
+  .fed .nm{font-weight:700}
+  .fed .sub{font-size:12.5px;color:var(--faint);font-family:var(--mono)}
+  .pill{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px}
+  .pill .dot{width:6px;height:6px;border-radius:50%}
+  .pill.live{background:var(--green-bg);color:var(--green)} .pill.live .dot{background:var(--green)}
+  .pill.prov{background:var(--amber-bg);color:var(--amber)} .pill.prov .dot{background:var(--amber)}
+  .pill.draft{background:var(--slate-bg);color:var(--slate)} .pill.draft .dot{background:var(--slate)}
+  .muted{color:var(--faint);font-size:13px}
+  .scrim{position:fixed;inset:0;background:rgba(12,18,38,.55);display:none;align-items:stretch;justify-content:center;z-index:40}
+  .scrim.show{display:flex}
+  .wiz{background:#fff;width:100%;max-width:940px;margin:34px 20px;border-radius:18px;box-shadow:0 30px 80px rgba(8,12,28,.5);display:flex;overflow:hidden;max-height:calc(100vh - 68px)}
+  .wsteps{width:250px;flex:none;background:var(--navy);color:#A9B2D0;padding:24px 20px}
+  .wsteps .h{font-family:var(--disp);text-transform:uppercase;color:#fff;font-size:18px;letter-spacing:.04em}
+  .wsteps .sub{font-size:12px;color:#6E7AA3;margin-top:4px}
+  .wsteps ol{list-style:none;padding:0;margin:22px 0 0;counter-reset:w;display:flex;flex-direction:column;gap:3px}
+  .wsteps li{counter-increment:w;display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:9px;font-size:13.5px;font-weight:600}
+  .wsteps li::before{content:counter(w);width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;font-size:12px;font-family:var(--mono);flex:none}
+  .wsteps li.on{background:rgba(255,255,255,.08);color:#fff}
+  .wsteps li.on::before{background:var(--primary);color:#fff}
+  .wsteps li.done{color:#8FE3B6}
+  .wsteps li.done::before{content:"✓";background:rgba(46,196,124,.2);color:#5BD89B}
+  .wbody{flex:1;min-width:0;display:flex;flex-direction:column}
+  .wmain{padding:26px 28px;overflow:auto}
+  .wmain h2{font-family:var(--disp);text-transform:uppercase;font-size:22px;margin:0 0 3px}
+  .wmain .lead{color:var(--sec);font-size:13.5px;margin:0 0 18px}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--sec);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .field input,.field select{width:100%;padding:11px 13px;border:1px solid #D7DCE6;border-radius:9px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff}
+  .field input:focus,.field select:focus{outline:none;border-color:#2F54D0;box-shadow:0 0 0 4px rgba(47,84,208,.14)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .swatches{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .sw{width:34px;height:34px;border-radius:8px;border:2px solid #fff;box-shadow:0 0 0 1px var(--border);cursor:pointer}
+  .pullbox{background:#F3F7FF;border:1px solid #D7E3FB;border-radius:12px;padding:14px}
+  .prev{margin-top:14px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .prev .bar{height:46px;display:flex;align-items:center;gap:9px;padding:0 14px;background:var(--navy)}
+  .prev .bar .lb{width:3px;height:20px;border-radius:2px}
+  .prev .bar .lt{font-family:var(--disp);font-weight:700;letter-spacing:.06em;color:#fff;font-size:15px}
+  .prev .body{padding:16px 14px;background:#fff}
+  .prev .btnp{display:inline-block;color:#fff;font-weight:700;font-size:12px;padding:8px 14px;border-radius:8px}
+  .chk{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:9px;margin-bottom:8px;font-weight:600;font-size:13.5px}
+  .chk input{width:auto}
+  .upload{display:block;border:1.5px dashed #C9CFDD;border-radius:10px;padding:22px;text-align:center;color:var(--sec);cursor:pointer;font-weight:600;font-size:13.5px}
+  .upload:hover{border-color:#2F54D0;background:#F7F9FF}
+  .upload.has{border-style:solid;border-color:var(--green);color:var(--green);background:var(--green-bg)}
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .cfield input[type=color]{width:100%;height:42px;padding:3px;border:1px solid #D7DCE6;border-radius:9px;background:#fff;cursor:pointer}
+  .cfield .hx{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:4px;text-align:center}
+  .wfoot{border-top:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .steplines{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+  .pstep{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;background:#fff}
+  .pstep .st{width:20px;height:20px;flex:none;border-radius:50%;border:2px solid #D7DCE6}
+  .pstep.run .st{border-color:var(--amber);border-top-color:transparent;animation:spin .8s linear infinite}
+  .pstep.ok .st{border:0;background:var(--green);position:relative}
+  .pstep.ok .st::after{content:"✓";color:#fff;font-size:12px;position:absolute;inset:0;display:grid;place-items:center}
+  .pstep .lb{font-weight:600;font-size:14px}
+  .pstep .lg{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .banner{background:#FFF7E6;border:1px solid #F3D999;color:#8a5a06;font-size:12.5px;border-radius:8px;padding:8px 12px;margin:0 0 14px;text-align:center}
+  @media(max-width:820px){.tiles{grid-template-columns:1fr 1fr}.wsteps{display:none}.side{display:none}}
+</style>
+
+<div class="banner">Interactive prototype of the CSE Operator Console — click <b>+ Add New Federation</b> and step through. On <b>Branding</b>, hit <b>Pull branding</b>; on <b>Content</b>, pick courses to clone.</div>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="bar"></span><div><div class="t">CSE</div><div class="s">Operator Console</div></div></div>
+    <nav class="nav">
+      <a class="on" href="#"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Federations</a>
+      <a href="#"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Billing</a>
+      <a href="#"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M4 12h.01M20 12h.01M12 4v.01M12 20v.01"/></svg>Settings</a>
+    </nav>
+    <div class="foot"><div class="k">Signed in</div><div class="v">Wesley · CSE Admin</div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top"><div class="search">Search federations…</div><div class="av">WF</div></div>
+    <div class="content">
+      <div class="phead">
+        <div>
+          <h1><span class="pbar"></span>Federations</h1>
+          <p>Every client instance, at a glance. Spin up a new one in minutes.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openWiz()">＋ Add New Federation</button>
+      </div>
+      <div class="tiles">
+        <div class="tile"><div class="k">Total clients</div><div class="v">4</div><div class="d">across the fleet</div></div>
+        <div class="tile"><div class="k">Live</div><div class="v" style="color:var(--green)">3</div><div class="d">serving learners</div></div>
+        <div class="tile"><div class="k">Provisioning</div><div class="v" style="color:var(--amber)">1</div><div class="d">setting up now</div></div>
+        <div class="tile"><div class="k">Learners</div><div class="v">2,418</div><div class="d">total enrolled</div></div>
+      </div>
+      <table>
+        <thead><tr><th>Federation</th><th>Status</th><th>Plan</th><th>Learners</th><th>Created</th></tr></thead>
+        <tbody>
+          <tr><td><div class="fed"><div class="logo" style="background:linear-gradient(135deg,#B01530,#7a0f22)">UK</div><div><div class="nm">USA Kickboxing</div><div class="sub">usakb.combatsportseducation.com</div></div></div></td><td><span class="pill live"><span class="dot"></span>Live</span></td><td>All-Access</td><td>1,942</td><td class="muted">Jun 11, 2026</td></tr>
+          <tr><td><div class="fed"><div class="logo" style="background:linear-gradient(135deg,#1E63C4,#123f80)">GB</div><div><div class="nm">Gracie Barra Central</div><div class="sub">gbcentral.combatsportseducation.com</div></div></div></td><td><span class="pill live"><span class="dot"></span>Live</span></td><td>All-Access</td><td>318</td><td class="muted">Jul 2, 2026</td></tr>
+          <tr><td><div class="fed"><div class="logo" style="background:linear-gradient(135deg,#2E7D5B,#1b4a36)">MT</div><div><div class="nm">Muay Thai Federation</div><div class="sub">mtf.combatsportseducation.com</div></div></div></td><td><span class="pill live"><span class="dot"></span>Live</span></td><td>Monthly</td><td>158</td><td class="muted">Jul 18, 2026</td></tr>
+          <tr><td><div class="fed"><div class="logo" style="background:linear-gradient(135deg,#5A6378,#3a4152)">WW</div><div><div class="nm">World Wrestling Academy</div><div class="sub">wwa.combatsportseducation.com</div></div></div></td><td><span class="pill prov"><span class="dot"></span>Provisioning</span></td><td>All-Access</td><td class="muted">—</td><td class="muted">Just now</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim">
+  <div class="wiz">
+    <div class="wsteps">
+      <div class="h">New Federation</div><div class="sub">Stand up a client end-to-end</div>
+      <ol id="stepList">
+        <li data-s="0" class="on">Details</li><li data-s="1">Domain</li><li data-s="2">Branding</li><li data-s="3">Content</li><li data-s="4">Import clients</li><li data-s="5">Payments</li><li data-s="6">Admin</li><li data-s="7">Review &amp; provision</li>
+      </ol>
+    </div>
+    <div class="wbody">
+      <div class="wmain" id="wmain"></div>
+      <div class="wfoot">
+        <button class="btn btn-ghost" onclick="closeWiz()">Cancel</button>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-ghost" id="backBtn" onclick="step(-1)" style="display:none">Back</button>
+          <button class="btn btn-primary" id="nextBtn" onclick="step(1)">Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var S=0, BRAND='#DB2B3A', LOGO_URL=null, LOGO_PULLED=false, MONO='WWA';
+  var scr=document.getElementById('scrim'), wmain=document.getElementById('wmain');
+  function esc(s){return s;}
+  var panels=[
+    function(){return '<h2>Federation details</h2><p class="lead">The basics that name the client.</p>'+
+      '<div class="field"><label>Federation name</label><input value="World Wrestling Academy"></div>'+
+      '<div class="row2"><div class="field"><label>Discipline</label><select><option>Wrestling</option><option>Boxing</option><option>BJJ</option><option>Muay Thai</option><option>MMA</option></select></div><div class="field"><label>Contact email</label><input value="admin@wwa.org"></div></div>';},
+    function(){return '<h2>Domain</h2><p class="lead">Their address on the platform, plus an optional custom domain.</p>'+
+      '<div class="field"><label>Subdomain</label><input value="wwa"><div class="muted" style="margin-top:6px">→ wwa.combatsportseducation.com</div></div>'+
+      '<div class="field"><label>Custom domain (optional)</label><input placeholder="training.wwa.org"><div class="muted" style="margin-top:6px">We’ll show the CNAME + issue SSL after provisioning.</div></div>';},
+    function(){return '<h2>Branding</h2><p class="lead">Upload their logo and we read the palette straight from it — or pull from their website on the live server. Then tweak.</p>'+
+      '<div class="pullbox"><div class="field" style="margin:0"><label>Federation website — auto-pull branding</label>'+
+        '<div style="display:flex;gap:8px"><input id="pullUrl" placeholder="usakickboxing.com" style="flex:1" value="usakickboxing.com"><button class="btn btn-primary" style="padding:11px 16px;white-space:nowrap" onclick="pullBrand()">✨ Pull branding</button></div>'+
+        '<div id="pullNote" class="muted" style="margin-top:8px">Detects the site’s full color palette, fonts, and logo to prefill everything below.</div></div></div>'+
+      '<div class="row3" style="margin-top:16px">'+
+        '<div class="field cfield"><label>Primary</label><input type="color" id="cPrim" value="#DB2B3A" oninput="updatePreview()"><div class="hx" id="hPrim">#DB2B3A</div></div>'+
+        '<div class="field cfield"><label>Secondary</label><input type="color" id="cSec" value="#2F54D0" oninput="updatePreview()"><div class="hx" id="hSec">#2F54D0</div></div>'+
+        '<div class="field cfield"><label>Dark / sidebar</label><input type="color" id="cNavy" value="#131C3F" oninput="updatePreview()"><div class="hx" id="hNavy">#131C3F</div></div>'+
+      '</div>'+
+      '<div class="row2"><div class="field"><label>App font</label><select id="fontApp"><option>Plus Jakarta Sans</option><option>Inter</option><option>Manrope</option><option>Barlow</option></select></div><div class="field"><label>Display font</label><select id="fontDisp"><option>Saira Condensed</option><option>Barlow Condensed</option><option>Oswald</option><option>Anton</option></select></div></div>'+
+      '<div class="field"><label>Logo</label>'+
+        '<label class="upload" id="logoDrop"><input type="file" accept="image/*" onchange="logoPicked(this)" style="display:none"><span id="logoLabel">Drag the logo here or click — we read the brand palette straight from it</span></label></div>'+
+      '<div class="prev"><div class="bar" id="pvBar"><span id="pvLogo"></span><span class="lt" id="pvWord" style="margin-left:9px">WWA</span><span id="pvNav" style="margin-left:auto;font-size:12px;font-weight:600">Courses · Pricing</span></div>'+
+        '<div class="body"><span class="btnp" id="pvBtn">Enroll now</span> <a id="pvSec" style="margin-left:14px;font-weight:700;font-size:13px">Learn more →</a> <span class="muted" style="margin-left:8px">live preview</span></div></div>';},
+    function(){return '<h2>Content</h2><p class="lead">Seed their courses — clone from the CSE library or import.</p>'+
+      '<div class="field"><label>Source</label><select id="srcSel" onchange="toggleClone()"><option>Start empty</option><option selected>Clone from the CSE course library</option><option>Import a bundle (EzyCourse / CSV / Teachable)</option></select></div>'+
+      '<div id="cloneBox"><div class="field" style="margin-bottom:8px"><label>Courses to clone</label></div>'+
+        [['Boxing Fundamentals — Level 1',1],['Corner Certificate',1],['Athletic Development',0],['Level 2 Silver Coach',0],['BJJ Drills & Skills',0],['K1 Development Curriculum',0]].map(function(c){return '<label class="chk"><input type="checkbox" '+(c[1]?'checked':'')+'> '+c[0]+'</label>';}).join('')+
+        '<div class="muted" style="margin-top:4px">Cloned courses copy over structure + lessons; the federation edits from there.</div></div>'+
+      '<div id="importBox" style="display:none"><div class="field"><label>Import bundle path</label><input placeholder="/home/frappe/imports/wwa"></div></div>';},
+    function(){return '<h2>Import clients</h2><p class="lead">Bring their existing students in — any source.</p>'+
+      '<div class="field"><label>Students source</label><select id="impSel" onchange="toggleImport()"><option>None for now</option><option>Generic CSV upload</option><option>From an import bundle</option></select></div>'+
+      '<div id="csvBox" style="display:none"><div class="field"><label>Students CSV</label>'+
+        '<label class="upload" id="csvDrop"><input type="file" accept=".csv" onchange="csvPicked(this)" style="display:none"><span id="csvLabel">Drag a CSV here, or click to choose</span></label>'+
+        '<div class="muted" style="margin-top:7px">Expected columns: <code>email, first_name, last_name, course</code> (course optional).</div></div></div>'+
+      '<div id="bundleBox" style="display:none"><div class="field"><label>Import bundle path</label><input placeholder="/home/frappe/imports/wwa"></div></div>'+
+      '<div class="muted">Passwords aren’t migrated — students set one via “Forgot password” at launch (needs email configured).</div>';},
+    function(){return '<h2>Payments</h2><p class="lead">Connect their processor. Optional — can be added later.</p>'+
+      '<div class="field"><label>Provider</label><select><option>Stripe</option><option>None for now</option></select></div>'+
+      '<div class="row2"><div class="field"><label>Publishable key</label><input placeholder="pk_live_…"></div><div class="field"><label>Secret key</label><input placeholder="sk_live_…" type="password"></div></div>'+
+      '<div class="field"><label>Currency</label><select><option>USD</option><option>EUR</option><option>GBP</option></select></div>';},
+    function(){return '<h2>Federation admin</h2><p class="lead">Who runs this instance day-to-day.</p>'+
+      '<div class="row2"><div class="field"><label>Admin email</label><input value="admin@wwa.org"></div><div class="field"><label>Name</label><input value="Dana Ruiz"></div></div>'+
+      '<div class="field"><label>Role</label><select><option>Federation Admin (edit all courses)</option><option>Coach</option></select></div>';},
+    function(){return '<h2>Review &amp; provision</h2><p class="lead">Confirm, then CSE builds the instance.</p>'+
+      '<div class="steplines" id="provList">'+
+        ['Create site','Install LMS + branding','Apply branding & roles','Certificate rule','Content & clients','Payments','Admin user','Smoke-test'].map(function(x){return '<div class="pstep"><span class="st"></span><span class="lb">'+x+'</span><span class="lg"></span></div>';}).join('')+
+      '</div>';}
+  ];
+  function gv(id,f){var e=document.getElementById(id);return e?e.value:f;}
+  function updatePreview(){
+    var p=gv('cPrim','#DB2B3A'),s=gv('cSec','#2F54D0'),n=gv('cNavy','#131C3F');
+    var bar=document.getElementById('pvBar');if(bar)bar.style.background=n;
+    var lb=document.getElementById('pvLb');if(lb)lb.style.background=p;
+    var btn=document.getElementById('pvBtn');if(btn)btn.style.background=p;
+    var sec=document.getElementById('pvSec');if(sec)sec.style.color=s;
+    var nav=document.getElementById('pvNav');if(nav)nav.style.color=s;
+    [['hPrim','cPrim'],['hSec','cSec'],['hNavy','cNavy']].forEach(function(x){var h=document.getElementById(x[0]),c=document.getElementById(x[1]);if(h&&c)h.textContent=c.value.toUpperCase();});
+    var pl=document.getElementById('pvLogo');
+    if(pl){
+      if(LOGO_URL){pl.innerHTML='<img src="'+LOGO_URL+'" alt="logo" style="height:26px;max-width:96px;object-fit:contain;background:#fff;border-radius:4px;padding:2px 4px">';}
+      else if(LOGO_PULLED){pl.innerHTML='<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:'+p+';color:#fff;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.02em">'+MONO+'</span>';}
+      else{pl.innerHTML='<span style="display:inline-block;width:3px;height:20px;border-radius:2px;background:'+p+'"></span>';}
+    }
+  }
+  // ---- REAL palette extraction from an uploaded logo/image (Canvas, client-side) ----
+  function rgb2hsv(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0;
+    if(d){if(mx===r)h=((g-b)/d+6)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h/=6;}
+    return[h,mx?d/mx:0,mx];}
+  function toHex(r,g,b){function x(v){return('0'+Math.round(v).toString(16)).slice(-2);}return('#'+x(r)+x(g)+x(b)).toUpperCase();}
+  function hsvHex(h,s,v){var i=Math.floor(h*6),f=h*6-i,p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s),r,g,b;
+    switch(i%6){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;default:r=v;g=p;b=q;}return toHex(r*255,g*255,b*255);}
+  function paletteFromImage(img){
+    var W=64,H=Math.max(1,Math.round(64*img.height/img.width));
+    var cv=document.createElement('canvas');cv.width=W;cv.height=H;
+    var ctx=cv.getContext('2d');ctx.drawImage(img,0,0,W,H);
+    var data;try{data=ctx.getImageData(0,0,W,H).data;}catch(e){return null;}
+    var bk={};
+    for(var i=0;i<data.length;i+=4){if(data[i+3]<128)continue;var R=data[i],G=data[i+1],B=data[i+2];
+      var k=(R>>4)+'-'+(G>>4)+'-'+(B>>4);if(!bk[k])bk[k]={n:0,r:0,g:0,b:0};var q=bk[k];q.n++;q.r+=R;q.g+=G;q.b+=B;}
+    var arr=[];for(var key in bk){var q=bk[key];var R=q.r/q.n,G=q.g/q.n,B=q.b/q.n;var hsv=rgb2hsv(R,G,B);arr.push({r:R,g:G,b:B,n:q.n,h:hsv[0],s:hsv[1],v:hsv[2]});}
+    if(!arr.length)return null;
+    var chroma=arr.filter(function(x){return x.s>0.18&&x.v>0.15&&x.v<0.96;});
+    chroma.sort(function(a,b){return b.n*(0.5+b.s)-a.n*(0.5+a.s);});
+    var primary=chroma[0]||arr.slice().sort(function(a,b){return b.n-a.n;})[0];
+    var secondary=null,sd=0.08;chroma.forEach(function(x){var dd=Math.abs(x.h-primary.h);dd=Math.min(dd,1-dd);if(dd>sd){sd=dd;secondary=x;}});
+    var dark=arr.filter(function(x){return x.v<0.4;}).sort(function(a,b){return a.v-b.v;})[0];
+    return{primary:toHex(primary.r,primary.g,primary.b),
+      secondary:secondary?toHex(secondary.r,secondary.g,secondary.b):hsvHex((primary.h+0.42)%1,Math.max(primary.s,0.5),Math.max(primary.v,0.55)),
+      navy:dark?toHex(dark.r,dark.g,dark.b):toHex(primary.r*0.28,primary.g*0.28,primary.b*0.34)};
+  }
+  function logoPicked(inp){
+    var f=inp.files&&inp.files[0];if(!f)return;
+    var r=new FileReader();
+    r.onload=function(e){
+      LOGO_URL=e.target.result;LOGO_PULLED=false;
+      var img=new Image();
+      img.onload=function(){
+        var pal=paletteFromImage(img);
+        var d=document.getElementById('logoDrop'),l=document.getElementById('logoLabel'),nt=document.getElementById('pullNote');
+        if(d)d.classList.add('has');
+        if(pal){setColors(pal.primary,pal.secondary,pal.navy);
+          if(l)l.textContent='✓ '+f.name+' — palette read from your logo';
+          if(nt)nt.innerHTML='<b style="color:var(--green)">✓ Palette read from your logo</b> — primary <b>'+pal.primary+'</b> · secondary <b>'+pal.secondary+'</b> · dark <b>'+pal.navy+'</b>. Adjust below.';
+        }else if(l){l.textContent='✓ '+f.name;}
+        updatePreview();
+      };
+      img.src=LOGO_URL;
+    };
+    r.readAsDataURL(f);
+  }
+  function setColors(p,s,n){var a=document.getElementById('cPrim'),b=document.getElementById('cSec'),c=document.getElementById('cNavy');if(a)a.value=p;if(b)b.value=s;if(c)c.value=n;updatePreview();}
+  function pullBrand(){
+    var u=(document.getElementById('pullUrl')||{}).value||'their site';
+    var nt=document.getElementById('pullNote');
+    // Honest: the real site-fetch runs server-side (cse_console.brandpull) — it
+    // can't run in this sandboxed preview, and some sites block bots (403). The
+    // path that works everywhere: upload the logo below → palette read from it.
+    if(nt)nt.innerHTML='<b>On the live server</b> this reads '+u+'’s colors, fonts &amp; logo automatically. This preview can’t reach external sites, so <b>upload the logo below</b> — we read the real palette straight from the image.';
+  }
+  function toggleClone(){var v=(document.getElementById('srcSel')||{}).value||'';var cb=document.getElementById('cloneBox'),ib=document.getElementById('importBox');if(cb)cb.style.display=/Clone/.test(v)?'block':'none';if(ib)ib.style.display=/Import/.test(v)?'block':'none';}
+  function toggleImport(){var v=(document.getElementById('impSel')||{}).value||'';var cv=document.getElementById('csvBox'),bd=document.getElementById('bundleBox');if(cv)cv.style.display=/CSV/.test(v)?'block':'none';if(bd)bd.style.display=/bundle/.test(v)?'block':'none';}
+  function csvPicked(inp){var d=document.getElementById('csvDrop'),l=document.getElementById('csvLabel');if(inp.files&&inp.files[0]){d.classList.add('has');l.textContent='✓ '+inp.files[0].name+' selected';}}
+  function render(){
+    wmain.innerHTML=panels[S]();
+    document.querySelectorAll('#stepList li').forEach(function(li){var n=+li.dataset.s;li.classList.toggle('on',n===S);li.classList.toggle('done',n<S);});
+    document.getElementById('backBtn').style.display=S===0?'none':'inline-flex';
+    var nb=document.getElementById('nextBtn');nb.textContent=S===7?'Provision now':'Continue';nb.setAttribute('onclick','step(1)');nb.style.display='inline-flex';
+    if(S===2)updatePreview();
+  }
+  function step(d){if(S===7&&d===1){provision();return;}S=Math.max(0,Math.min(7,S+d));render();}
+  function provision(){
+    document.getElementById('nextBtn').style.display='none';document.getElementById('backBtn').style.display='none';
+    var rows=[].slice.call(document.querySelectorAll('#provList .pstep')),i=0;
+    (function run(){
+      if(i>0){rows[i-1].classList.remove('run');rows[i-1].classList.add('ok');rows[i-1].querySelector('.lg').textContent='done';}
+      if(i>=rows.length){var nb=document.getElementById('nextBtn');nb.style.display='inline-flex';nb.textContent='Done — view federation';nb.setAttribute('onclick','closeWiz()');return;}
+      rows[i].classList.add('run');rows[i].querySelector('.lg').textContent='running…';i++;setTimeout(run,650);
+    })();
+  }
+  function openWiz(){S=0;LOGO_URL=null;LOGO_PULLED=false;render();scr.classList.add('show');}
+  function closeWiz(){scr.classList.remove('show');}
+  render();
+</script>

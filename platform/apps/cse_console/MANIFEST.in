@@ -1,0 +1,17 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include cse_console *.css
+recursive-include cse_console *.csv
+recursive-include cse_console *.html
+recursive-include cse_console *.ico
+recursive-include cse_console *.js
+recursive-include cse_console *.json
+recursive-include cse_console *.md
+recursive-include cse_console *.png
+recursive-include cse_console *.py
+recursive-include cse_console *.svg
+recursive-include cse_console *.txt

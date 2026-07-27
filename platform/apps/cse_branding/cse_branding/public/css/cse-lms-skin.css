@@ -1,0 +1,181 @@
+/* =========================================================================
+   CSE LMS SKIN  —  tuned live against the /lms Frappe-UI DOM
+   -------------------------------------------------------------------------
+   Pushes the stock Frappe LMS Vue app (/lms) toward the CSE mockups by
+   overriding its styling with the per-federation brand tokens. Delivered
+   through the same pipeline as the design system: brand_css() appends this
+   file, and the nginx sub_filter injects the brand_css <link> into the /lms
+   SPA shell (see platform/deploy/nginx-cse-branding.snippet).
+
+   HOW THIS WAS TUNED
+   ------------------
+   The LMS frontend is a compiled Frappe-UI (Vue 3 + Tailwind) bundle. It has
+   NO semantic component classes — the DOM is Tailwind utilities plus a set of
+   CSS custom properties (--ink-gray-*, --surface-*, --outline-*). So the skin
+   works two ways, both verified in the live DOM:
+     1. Structural hooks that ARE stable: the app mount (#app) and the sidebar
+        column class `bg-surface-menu-bar`.
+     2. Frappe-UI's colour VARIABLES, re-pointed within a scope. Because custom
+        properties cascade, redefining --ink-gray-* inside the navy sidebar
+        re-colours every nav label/icon that reads `text-ink-gray-*`.
+
+   Everything maps to the --cse-* brand tokens (never hardcoded brand hex), so a
+   federation's colour/font change still flows through automatically. The only
+   literal values here are neutral light/dark shades used to keep text legible
+   on the navy shell (and to restore Frappe-UI's own defaults inside nested
+   light cards — see the reset block).
+   ========================================================================= */
+
+/* ---- 1. Fonts ----------------------------------------------------------- */
+/* Body text -> Plus Jakarta Sans; page headings -> the condensed display face. */
+#app {
+  font-family: var(--cse-font-app), -apple-system, BlinkMacSystemFont, sans-serif;
+}
+#app h1, #app h2, #app h3 {
+  font-family: var(--cse-font-display), var(--cse-font-app), sans-serif;
+  letter-spacing: 0.01em;
+}
+
+/* ---- 2. Left sidebar -> brand navy -------------------------------------- */
+/* The LMS sidebar column carries the utility class `bg-surface-menu-bar`
+   (verified: two nested elements, ~224px wide, full height). Paint it navy and
+   re-point the ink ramp to light values so every `text-ink-gray-*` nav label
+   and icon reads on the dark shell. surface-gray-* are the hover/selected
+   backgrounds inside the sidebar. */
+#app .bg-surface-menu-bar {
+  background-color: var(--cse-navy) !important;
+  --ink-gray-9: #FFFFFF;
+  --ink-gray-8: #E7EAF4;
+  --ink-gray-7: #C7CEE4;
+  --ink-gray-6: #AEB7D6;
+  --ink-gray-5: #93A0C8;
+  --ink-gray-4: #93A0C8;
+  --ink-gray-3: #93A0C8;
+  --surface-gray-2: rgba(255, 255, 255, 0.08);
+  --surface-gray-3: rgba(255, 255, 255, 0.14);
+  --surface-selected: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+#app .bg-surface-menu-bar button:hover {
+  background-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* ---- 2a. Reset ink inside nested LIGHT surfaces of the sidebar ----------- */
+/* Frappe-UI teleports the "Getting started" popover into the sidebar subtree
+   (a `position:fixed` node) and docks a `bg-surface-modal` card at the sidebar
+   foot. Both keep their own light background, so the light ink ramp above would
+   make their text invisible. Restore Frappe-UI's default ink/surface values on
+   those light surfaces. (Literal defaults captured from the live :root.) */
+#app .bg-surface-menu-bar .fixed,
+#app .bg-surface-menu-bar [class*="bg-surface-modal"] {
+  --ink-gray-9: #171717;
+  --ink-gray-8: #383838;
+  --ink-gray-7: #525252;
+  --ink-gray-6: #525252;
+  --ink-gray-5: #7C7C7C;
+  --ink-gray-4: #999999;
+  --ink-gray-3: #C7C7C7;
+  --surface-gray-2: #F3F3F3;
+  --surface-gray-3: #EDEDED;
+  --surface-selected: #FFFFFF;
+}
+#app .bg-surface-menu-bar .fixed button:hover,
+#app .bg-surface-menu-bar [class*="bg-surface-modal"] button:hover {
+  background-color: #F3F3F3 !important;
+}
+
+/* ---- 3. Primary / solid buttons -> brand red ---------------------------- */
+/* Frappe-UI's solid Button variant paints `bg-surface-gray-7` (near-black).
+   The mockups use the brand red for primary actions (e.g. the "Create" button).
+   Scope to <button> so only actual solid buttons are recoloured, not other
+   gray-7 surfaces. */
+#app button[class*="bg-surface-gray-7"] {
+  background-color: var(--cse-primary) !important;
+  border-color: var(--cse-primary) !important;
+}
+#app button[class*="bg-surface-gray-7"]:hover {
+  background-color: var(--cse-primary-hover) !important;
+  border-color: var(--cse-primary-hover) !important;
+}
+
+/* =========================================================================
+   CSE LMS SKIN — BATCH 3 (Learning Management) design-language layer
+   Source of truth: claude.ai/design project 9a52…, DESIGN_TOKENS.md.
+   Sealed-box: CSS only, against real frappe-ui classes (verified live DOM).
+   Brings the light-canvas + white-card system to My Courses / Certifications
+   / Statistics. Per-course progress bars + Resume + discipline pills are DATA
+   the catalog DOM doesn't render — those need a JS augmentation layer, not CSS.
+   ========================================================================= */
+
+/* ---- Light design canvas (#F6F7F9) behind the content column ------------ */
+#app .bg-surface-white { background-color: #F6F7F9 !important; }
+
+/* ---- Cards -> white, hairline border, 16px radius, soft shadow ---------- */
+#app .bg-surface-cards {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E6E9F0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 2px rgba(16,26,51,0.04) !important;
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+/* hover lift (design: 0 8px 20px) */
+#app a:hover > .bg-surface-cards,
+#app .bg-surface-cards:hover {
+  box-shadow: 0 10px 24px rgba(16,26,51,0.10) !important;
+  transform: translateY(-2px);
+}
+/* neutralise frappe's doubled inner 1-2px borders so only the outer card border shows */
+#app .bg-surface-cards > [class*="border-t"],
+#app .bg-surface-cards > [class*="border-x"],
+#app .bg-surface-cards > [class*="border-b-2"],
+#app .bg-surface-cards > [class*="border-x-2"] {
+  border-color: transparent !important;
+}
+/* card thumbnail keeps the top corners round */
+#app .bg-surface-cards > [class*="rounded-t-md"] { border-radius: 16px 16px 0 0 !important; }
+#app .bg-surface-cards > [class*="rounded-b-md"] { border-radius: 0 0 16px 16px !important; }
+
+/* ---- Card title -> tighter, bolder (design: 16-20px/700) ---------------- */
+#app .bg-surface-cards .text-xl { font-weight: 700 !important; letter-spacing: -0.01em; }
+
+/* ---- Discipline / meta badges -> soft pill tint ------------------------- */
+#app .bg-surface-cards .rounded-md[class*="bg-surface-gray"],
+#app .bg-surface-cards .badge {
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em;
+}
+
+/* ---- Pill tabs: active -> brand red ------------------------------------- */
+#app .bg-surface-gray-2 button[aria-selected="true"],
+#app .bg-surface-gray-2 button.bg-surface-white {
+  background-color: var(--cse-primary) !important;
+  color: #FFFFFF !important;
+}
+
+/* ---- Section / page headings -> red accent bar + Saira ------------------ */
+#app .flex.min-h-0 h1,
+#app .flex.min-h-0 h2,
+#app .text-2xl.font-semibold,
+#app .text-xl.font-semibold.mb-4 {
+  font-family: var(--cse-font-display), var(--cse-font-app), sans-serif !important;
+  letter-spacing: 0.01em;
+}
+
+/* =========================================================================
+   BATCH 2 (Course Player) — accent highlight on the current lesson
+   Verified hook: the active lesson row is an <a> with router-link-exact-active
+   + the frappe-ui gray-2 highlight. Re-point it to the brand-red tint with a
+   red left accent bar, matching the design's "current lesson" state.
+   ========================================================================= */
+#app a.router-link-exact-active.py-2[class*="ps-9"],
+#app a.router-link-exact-active.py-2.text-ink-gray-9 {
+  background-color: #FDECEE !important;
+  color: #C01F2F !important;
+  box-shadow: inset 3px 0 0 var(--cse-primary);
+  font-weight: 700;
+}
+#app a.router-link-exact-active.py-2[class*="ps-9"] svg,
+#app a.router-link-exact-active.py-2.text-ink-gray-9 svg {
+  color: #C01F2F !important;
+}
